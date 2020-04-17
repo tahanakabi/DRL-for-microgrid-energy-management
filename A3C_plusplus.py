@@ -9,7 +9,7 @@
 
 import numpy as np
 import tensorflow as tf
-# import tensorflow_probability as tfp
+
 from matplotlib import pyplot
 import gym, time, random, threading
 
@@ -20,32 +20,34 @@ from keras import backend as K
 from tcl_env_dqn_1 import *
 
 # -- constants
-RUN_TIME = 1000
+RUN_TIME = 1
 THREADS = 16
 OPTIMIZERS = 1
 THREAD_DELAY = 0.00001
 
-GAMMA = 0.9
+DAY0=30
+DAYN=60
 
 N_STEP_RETURN = 24
+GAMMA = 0.9
 GAMMA_N = GAMMA ** N_STEP_RETURN
 
 EPS_START = .4
 EPS_STOP = .001
-EPS_STEPS = 100
+EPS_STEPS = 1000
 
-MIN_BATCH = 500
-TR_FREQ = 100
+MIN_BATCH = 100
+TR_FREQ = 50
 LEARNING_RATE = 1e-3
 
 LOSS_V = 0.007  # v loss coefficient
-LOSS_ENTROPY = 0.07  # entropy coefficient
+LOSS_ENTROPY = 0.7  # entropy coefficient
 
 REWARDS = {}
-for i in range(11):
+for i in range(0,DAYN-DAY0):
     REWARDS[i]=[]
 
-max_reward = 0.26
+max_reward = -100.0
 TRAINING_ITERATIONS = 1
 
 # ---------
@@ -126,26 +128,33 @@ class Brain:
         r = r + GAMMA_N * v * s_mask  # set v to 0 where s_ is terminal state
 
         s_t, a_t, r_t, minimize, loss = self.graph
-        length=max([len(self.rewards[i]) for i in self.rewards.keys()])
-        if length>10:
-            R=np.average([np.average(list(self.rewards.values())[i]) for i in self.rewards.keys()])
-            if R>self.max_reward:
+        self.new_max()
+        print("Training...")
+        for _ in range(TRAINING_ITERATIONS):
+            self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
+        print("Done...")
+
+    def new_max(self):
+        length = min([len(self.rewards[i]) for i in self.rewards.keys()])
+        print("--------" + str(length))
+        # if length==0:
+        #     print(self.rewards)
+        if length > 0:
+            R = np.average([np.average(self.rewards[i]) for i in self.rewards.keys()])
+            print("-------- R= " + str(R))
+            print("-------- max reward  " + str(self.max_reward))
+            if R > self.max_reward:
                 print('new max found:')
                 print(R)
-                print("---------------------------")
+                print("-------------------------------------------------------------------------------------------------")
                 brain.model.save("A3C+++.h5")
                 print("Model saved")
                 self.max_reward = R
-            for i in range(11):
+            #     IMPROVED=True
+            # elif IMPROVED:
+            #     brain.model.load_weights("A3C+++.h5")
+            for i in range(0,DAYN-DAY0):
                 self.rewards[i] = []
-        print("Training...")
-        # LOSS_LIST=[]
-        for _ in range(TRAINING_ITERATIONS):
-            iter_loss=self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})[1]
-        #     LOSS_LIST.append(iter_loss)
-        # pyplot.plot(LOSS_LIST)
-        # pyplot.show()
-        print("Done...")
 
     def train_push(self, s, a, r, s_):
         with self.lock_queue:
@@ -238,16 +247,13 @@ class Agent:
                 n = len(self.memory)
                 s, a, r, s_ = get_sample(self.memory, n)
                 brain.train_push(s, a, r, s_)
-
                 self.R = (self.R - self.memory[0][2]) / GAMMA
                 self.memory.pop(0)
-
             self.R = 0
 
         if len(self.memory) >= N_STEP_RETURN:
             s, a, r, s_ = get_sample(self.memory, N_STEP_RETURN)
             brain.train_push(s, a, r, s_)
-
             self.R = self.R - self.memory[0][2]
             self.memory.pop(0)
 
@@ -267,13 +273,13 @@ class Environment(threading.Thread):
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day=day)
+        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
             if self.render:
-                # brain.model.load_weights("A3C+++.h5")
-                self.env.render(name='A3C+')
+                brain.model.load_weights("A3C+++.h5")
+                self.env.render(name='A3C++')
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
 
@@ -285,11 +291,11 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-                if self.render: self.env.render(name='A3C+')
+                if self.render: self.env.render(name='A3C++')
                 break
         print(R)
-        # REWARDS[self.env.day].append(R)
-        # brain.rewards[self.env.day].append(R)
+        REWARDS[self.env.day-DAY0].append(R)
+        brain.rewards[self.env.day-DAY0].append(R)
 
 
     def run(self):
@@ -327,47 +333,55 @@ NUM_ACTIONS_EXCESS = 2
 NONE_STATE = np.zeros(NUM_STATE)
 
 brain = Brain()  # brain is global in A3C
-brain.model.load_weights("A3C+++.h5")
+# brain.model.load_weights("A3C+++.h5")
 
 # best_brain = copy.deepcopy(brain)
 
-# envs = [Environment() for i in range(THREADS)]
-# opts = [Optimizer() for i in range(OPTIMIZERS)]
-# t0=time.time()
-# for o in opts:
-#     o.start()
+envs = [Environment() for i in range(THREADS)]
+opts = [Optimizer() for i in range(OPTIMIZERS)]
+t0=time.time()
+for o in opts:
+    o.start()
 #
-# for e in envs:
-#     e.start()
-#
-# time.sleep(RUN_TIME)
-#
-# for e in envs:
-#     e.stop()
-# for e in envs:
-#     e.join()
-#
-# for o in opts:
-#     o.stop()
-# for o in opts:
-#     o.join()
+for e in envs:
+    e.start()
+
+time.sleep(RUN_TIME)
+
+for e in envs:
+    e.stop()
+for e in envs:
+    e.join()
+
+for o in opts:
+    o.stop()
+for o in opts:
+    o.join()
 # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-# print("Training finished")
-# print('training_time:', time.time()-t0)
+print("Training finished")
+print('training_time:', time.time()-t0)
 # brain.model.save("A3C++1.h5")
+brain.new_max()
+# for day in range(DAY0,DAYN):
+#     env_test.runEpisode(day)
+
+while True:
+    print("Day: ")
+    day= int(input())
+    env_test.runEpisode(day)
+
 # import pickle
 # with open("REWARDS_A3C+++f.pkl",'wb') as f:
 #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 
 # for rew in REWARDS.values():
 #     print(np.average(list(rew)))
-    # pyplot.plot(list(rew))
+#     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
 
 
-# for day in range(3,4,1):
-env_test.runEpisode(day=100)
+
 
 
 # print(np.average([list(REWARDS[i])[-1] for i in range(11)]))

@@ -19,28 +19,26 @@ import math
 # default TCL environment.
 # From Taha's code
 DEFAULT_ITERATIONS = 24
-DEFAULT_NUM_TCLS = 100
-DEFAULT_NUM_LOADS = 150
-# Load up default prices and
-# temperatures (from Taha's CSV)
-default_data = np.load("default_price_and_temperatures.npy")
-DEFAULT_PRICES = default_data[:, 0]
-DEFAULT_TEMPERATURS = default_data[:, 1]
+DEFAULT_NUM_TCLS = 300
+DEFAULT_NUM_LOADS = 400
+AVGTCLPOWER = 1.5
+# temperatures
+DEFAULT_TEMPERATURS = np.genfromtxt("temperatures.csv",usecols=[5],skip_header=1,delimiter=',')
 BASE_LOAD = np.array(
-    [2.0, 2.0, 2.0, 2.0, 3.4, 4.0, 6.0, 5.5, 6.0, 5.5, 4.0, 3.3, 4.1, 3.3, 4.1, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-     2.0])
-# https://austinenergy.com/ae/residential/rates/residential-electric-rates-and-line-items
-PRICE_TIERS = np.array([2.8, 5.8, 7.8, 9.3, 10.81])
-
+    [.4, .3,.2,.2,.2,.2,.3,.5,.6,.6,.5,.5,.5,.4,.4,.6,.8,1.0,1.0,.9,.8,.6,.5,.4])
+MARKET_PRICE = 5.53
+PRICE_TIERS = np.array([-3.8, -2.0, 0.0, 1.5, 2.29])
+TCL_SALE_PRICE = 3.5
 HIGH_PRICE_PENALTY = 2.0
-FIXED_COST = 0
-QUADRATIC_PRICE = .015
-
+WIND_POWER_COST = 3.5
+FIXED_COST = 3.61111
+TRANSFER_PRICE_IMPORT = 2.29
+TRANSFER_PRICE_EXPORT = 0.9
 # Default Tmin and Tmax in TCLs
 TCL_TMIN = 19
 TCL_TMAX = 25
 TCL_PENALTY = 0.1
-MAX_R = 1000
+MAX_R = 100
 MAX_GENERATION = 120
 SOCS_RENDER = []
 LOADS_RENDER = []
@@ -107,33 +105,31 @@ class TCL:
 
 class Battery:
     # Simulates the battery system of the microGrid
-    def __init__(self, capacity, useD, dissipation, lossC, rateC, maxDD, chargeE, tmax):
+    def __init__(self, capacity, useD, dissipation, rateC, maxDD, chargeE):
         self.capacity = capacity  # full charge battery capacity
         self.useD = useD  # useful discharge coefficient
         self.dissipation = dissipation  # dissipation coefficient of the battery
-        self.lossC = lossC  # charge loss
         self.rateC = rateC  # charging rate
         self.maxDD = maxDD  # maximum power that the battery can deliver per timestep
-        self.tmax = tmax  # maxmum charging time
-        self.chargeE = chargeE  # Energy given to the battery to charge
+        self.chargeE = chargeE  # max Energy given to the battery to charge
         self.RC = 0  # remaining capacity
-        self.ct = 0  # Charging step
+
 
     def charge(self, E):
         empty = self.capacity - self.RC
         if empty <= 0:
             return E
         else:
-            self.RC += self.rateC * E
-            leftover = self.RC - self.capacity
+            self.RC += self.rateC * min(E,self.chargeE)
+            leftover = self.RC - self.capacity + max(E-self.chargeE,0)
             self.RC = min(self.capacity, self.RC)
             return max(leftover, 0)
 
     def supply(self, E):
         remaining = self.RC
-        self.RC -= E * self.useD
+        self.RC -= min(E, remaining,self.maxDD)
         self.RC = max(self.RC, 0)
-        return min(E, remaining)
+        return min(E, remaining,self.maxDD) * self.useD
 
     def dissipate(self):
         self.RC = self.RC * math.exp(- self.dissipation)
@@ -145,19 +141,17 @@ class Battery:
 
 class Grid:
     def __init__(self):
-        down_reg_df = pd.read_csv("down_regulation.csv")
-        up_reg_df = pd.read_csv("up_regulation.csv")
-        down_reg = np.array(down_reg_df.iloc[:, -1]) / 10
-        up_reg = np.array(up_reg_df.iloc[:, -1]) / 10
-        self.buy_prices = down_reg
-        self.sell_prices = up_reg
+        down_reg = np.genfromtxt("down_regulation.csv",delimiter=',',skip_header=1,usecols=[-1])/10
+        up_reg = np.genfromtxt("up_regulation.csv",delimiter=',',skip_header=1,usecols=[-1])/10
+        self.sell_prices = down_reg
+        self.buy_prices = up_reg
         self.time = 0
 
     def sell(self, E):
-        return self.sell_prices[self.time] * E
+        return (self.sell_prices[self.time]+TRANSFER_PRICE_EXPORT) * E
 
     def buy(self, E):
-        return -self.buy_prices[self.time] * E - QUADRATIC_PRICE * E ** 2 - FIXED_COST
+        return -(self.buy_prices[self.time] + TRANSFER_PRICE_IMPORT) * E
 
     #
     # def get_price(self,time):
@@ -167,12 +161,11 @@ class Grid:
         self.time = time
 
     def total_cost(self,prices, energy):
-        return sum(prices*energy/100+ QUADRATIC_PRICE*energy**2 - FIXED_COST)
+        return sum(prices * energy / 100 + TRANSFER_PRICE_IMPORT * energy + FIXED_COST)
 
 class Generation:
-    def __init__(self, max_capacity):
-        power_df = pd.read_csv("wind_generation.csv")
-        self.power = np.array(power_df.iloc[:, -1])
+    def __init__(self):
+        self.power = np.genfromtxt("wind_generation.csv",delimiter=',',skip_header=1,usecols=[-1])
         self.max_capacity = np.max(self.power[:30])
 
     def current_generation(self, time):
@@ -181,20 +174,32 @@ class Generation:
 
 
 class Load:
-    def __init__(self, price_sens, base_load, max_v_load):
+    def __init__(self, price_sens, base_load, max_v_load,patience):
         self.price_sens = price_sens
         self.base_load = base_load
         self.max_v_load = max_v_load
         self.response = 0
+        self.shifted_loads={}
+        self.patience=patience
+        self.dr_load=0
 
-    def react(self, price_tier):
-        self.response = self.price_sens * (price_tier - 2)
-        if self.response > 0 and self.price_sens > 0.1:
-            self.price_sens -= 0.1
+    def react(self, price_tier , time_day):
+        self.dr_load=self.base_load[time_day]
+        response = self.price_sens * (price_tier - 2)
+        if response != 0 :
+            self.price_sens=max(self.price_sens - 0.01,0)
+            self.dr_load -= self.base_load[time_day] * response
+            self.shifted_loads[time_day] = self.base_load[time_day] * response
+        for k in list(self.shifted_loads):
+            probability_of_execution = -self.shifted_loads[k]*(price_tier - 2) + (time_day-k)/max(self.patience,1)
+            # print("prb exec: "+str(probability_of_execution))
+            if random.random()<=probability_of_execution:
+                self.dr_load+=self.shifted_loads[k]
+                del self.shifted_loads[k]
 
     def load(self, time_day):
         # print(self.response)
-        return max(self.base_load[time_day] - self.max_v_load * self.response, 0)
+        return max(self.dr_load, 0)
 
 
 class MicroGridEnv(gym.Env):
@@ -213,7 +218,7 @@ class MicroGridEnv(gym.Env):
         self.iterations = kwargs.get("iterations", DEFAULT_ITERATIONS)
         self.num_tcls = kwargs.get("num_tcls", DEFAULT_NUM_TCLS)
         self.num_loads = kwargs.get("num_loads", DEFAULT_NUM_LOADS)
-        self.prices = kwargs.get("prices", DEFAULT_PRICES)
+        # self.prices = kwargs.get("prices", DEFAULT_PRICES)
         self.temperatures = kwargs.get("temperatures", DEFAULT_TEMPERATURS)
         self.base_load = kwargs.get("base_load", BASE_LOAD)
         self.price_tiers = kwargs.get("price_tiers", PRICE_TIERS)
@@ -234,7 +239,7 @@ class MicroGridEnv(gym.Env):
         self.loads_parameters = []
         self.loads = []
 
-        self.generation = Generation(MAX_GENERATION)
+        self.generation = Generation()
         self.grid = Grid()
 
         for i in range(self.num_tcls):
@@ -259,7 +264,7 @@ class MicroGridEnv(gym.Env):
         ca = random.normalvariate(0.004, 0.0008)
         cm = random.normalvariate(0.3, 0.004)
         q = random.normalvariate(0, 0.01)
-        P = random.normalvariate(1.5, 0.01)
+        P = random.normalvariate(AVGTCLPOWER, 0.01)
         return [ca, cm, q, P]
 
     def _create_tcl(self, ca, cm, q, P, initial_temperature):
@@ -268,7 +273,6 @@ class MicroGridEnv(gym.Env):
         return tcl
 
     def _create_load_parameters(self):
-
         """
         Initialize one load randomly,
         and return it.
@@ -276,20 +280,20 @@ class MicroGridEnv(gym.Env):
         # Hardcoded initialization values to create
         # bunch of different loads
 
-        price_sensitivity = random.normalvariate(0.5, 0.3)
-        max_v_load = random.normalvariate(3.0, 1.0)
-        return [price_sensitivity, max_v_load]
+        price_sensitivity = random.normalvariate(0.5, 0.2)
+        max_v_load = random.normalvariate(0.4, 0.01)
+        patience= int(random.normalvariate(5,2))+1
+        return [price_sensitivity, max_v_load,patience]
 
-    def _create_load(self, price_sensitivity, max_v_load):
-        load = Load(price_sensitivity, base_load=self.base_load, max_v_load=max_v_load)
+    def _create_load(self, price_sensitivity, max_v_load,patience):
+        load = Load(price_sensitivity, base_load=self.base_load, max_v_load=max_v_load,patience=patience)
         return load
 
     def _create_battery(self):
         """
         Initialize one battery
         """
-        battery = Battery(capacity=400.0, useD=0.9, dissipation=0.001, lossC=0.15, rateC=0.9, maxDD=10, chargeE=10,
-                          tmax=5)
+        battery = Battery(capacity=1500.0, useD=0.9, dissipation=0.001, rateC=0.9, maxDD=600.0, chargeE=600.0)
         return battery
 
     def _build_state(self):
@@ -307,14 +311,13 @@ class MicroGridEnv(gym.Env):
         loads = BASE_LOAD[(self.time_step) % 24]
         loads = (loads - min(BASE_LOAD)) / (max(BASE_LOAD) - min(BASE_LOAD))
 
-
-        current_generation = self.generation.current_generation(self.day+self.time_step)
+        current_generation = self.generation.current_generation(self.day*24+self.time_step)
         current_generation /= self.generation.max_capacity
 
-        temperature = self.temperatures[self.day+self.time_step]
+        temperature = self.temperatures[self.day*24+self.time_step]
         temperature = (temperature-min(self.temperatures))/(max(self.temperatures)-min(self.temperatures))
 
-        price = self.grid.buy_prices[self.day+self.time_step]
+        price = self.grid.buy_prices[self.day*24+self.time_step]
         price = (price - min(self.grid.buy_prices)) / (max(self.grid.buy_prices) - min(self.grid.buy_prices))
 
         high_price = self.high_price/(4 * self.iterations)
@@ -334,9 +337,7 @@ class MicroGridEnv(gym.Env):
         prices and temperatures (next 24h)
         """
         temp_forecast = np.array(self.temperatures[self.time_step + 1:self.time_step + 25])
-        price_forecast = np.array(self.prices[self.time_step + 1:self.time_step + 25])
         return {"temperature_forecast": temp_forecast,
-                "price_forecast": price_forecast,
                 "forecast_times": np.arange(0, self.iterations)}
 
     def _compute_tcl_power(self):
@@ -359,7 +360,7 @@ class MicroGridEnv(gym.Env):
         if type(action) is not list:
             action = ACTIONS[action]
 
-        self.grid.set_time(self.day + self.time_step)
+        self.grid.set_time(self.day*24 + self.time_step)
         reward = 0
         # Update state of TCLs according to action
 
@@ -368,29 +369,31 @@ class MicroGridEnv(gym.Env):
         energy_deficiency_action = action[2]
         energy_excess_action = action[3]
         # Get the energy generated by the DER
-        available_energy = self.generation.current_generation(self.day + self.time_step)
+        available_energy = self.generation.current_generation(self.day*24 + self.time_step)
+        # Calculate the cost of energy produced from wind turbines
+        reward-=available_energy*WIND_POWER_COST/100
         # Energy rate
         # self.eRate = available_energy/self.generation.max_capacity
 
         # print("Generated power: ", available_energy)
         # We implement the pricing action and we calculate the total load in response to the price
         for load in self.loads:
-            load.react(price_action)
+            load.react(price_tier=price_action, time_day=self.time_step)
         total_loads = sum([l.load(self.time_step) for l in self.loads])
         # print("Total loads",total_loads)
         # We fulfilled the load with the available energy.
         available_energy -= total_loads
         # We calculate the return based on the sale price.
-        self.sale_price = self.price_tiers[price_action]
+        self.sale_price = self.price_tiers[price_action]+MARKET_PRICE
         # We increment the reward by the amount of return
         # Division by 100 to transform from cents to euros
-        reward += total_loads * self.sale_price / 100
+        reward += total_loads * (self.sale_price) / 100
         # Penalty of charging too high prices
         self.high_price += price_action
         # Distributing the energy according to priority
         sortedTCLs = sorted(self.tcls, key=lambda x: x.SoC)
         # print(tcl_action)
-        control = tcl_action * 50.0
+        control = tcl_action * DEFAULT_NUM_TCLS*AVGTCLPOWER/3
         self.control = control
         for tcl in sortedTCLs:
             if control > 0:
@@ -398,7 +401,7 @@ class MicroGridEnv(gym.Env):
                 control -= tcl.P * tcl.u
             else:
                 tcl.control(0)
-            tcl.update_state(self.temperatures[self.day + self.time_step])
+            tcl.update_state(self.temperatures[self.day*24 + self.time_step])
             # if tcl.SoC >1 :
             #     reward -= abs((tcl.SoC-1) * reward*TCL_PENALTY)
             # if  tcl.SoC<0:
@@ -406,7 +409,7 @@ class MicroGridEnv(gym.Env):
 
         available_energy -= self._compute_tcl_power()
         # control_error = self.sale_price*(self.control-self._compute_tcl_power())**2
-        reward += self._compute_tcl_power() * self.sale_price / 100
+        reward += self._compute_tcl_power() * TCL_SALE_PRICE / 100
         if available_energy > 0:
             if energy_excess_action:
                 available_energy = self.battery.charge(available_energy)
@@ -433,20 +436,24 @@ class MicroGridEnv(gym.Env):
             # Penalize high prices
             reward -= abs(reward * HIGH_PRICE_PENALTY * (self.high_price - 2 * self.iterations))
         terminal = self.time_step == self.iterations - 1
-        if terminal:
-            # reward if battery is charged
-            reward += abs(reward * self.battery.SoC / 2)
+        # Pay fixed energy transfer fee
+        reward -= FIXED_COST/100
+        # if terminal:
+        #
+        #
+        #     # # reward if battery is charged
+        #     # reward += abs(reward * self.battery.SoC / 2)
         info = self._build_info()
 
-        return state, reward / MAX_R, terminal, info
+        return state, reward/MAX_R , terminal, info
 
-    def reset(self, day=None):
+    def reset(self, day0=0, dayn=10,day=None):
         """
         Create new TCLs, and return initial state.
         Note: Overrides previous TCLs
         """
         if day == None:
-            self.day = random.randint(0, 10)
+            self.day = random.randint(day0, dayn-1)
         else:
             self.day = day
         print("Day:", self.day)
@@ -456,7 +463,7 @@ class MicroGridEnv(gym.Env):
         self.energy_bought = 0
         self.energy_generated = 0
         self.control = 0
-        self.sale_price = PRICE_TIERS[2]
+        self.sale_price = PRICE_TIERS[2]+MARKET_PRICE
         self.high_price = 0
         self.tcls.clear()
         # initial_tcl_temperature = random.normalvariate(12, 5)
@@ -470,7 +477,7 @@ class MicroGridEnv(gym.Env):
         self.loads.clear()
         for i in range(self.num_loads):
             parameters = self.loads_parameters[i]
-            self.loads.append(self._create_load(parameters[0], parameters[1]))
+            self.loads.append(self._create_load(parameters[0], parameters[1],parameters[2]))
 
         self.battery = self._create_battery()
         return self._build_state()
@@ -480,14 +487,14 @@ class MicroGridEnv(gym.Env):
         LOADS_RENDER.append([l.load(self.time_step) for l in self.loads])
         PRICE_RENDER.append(self.sale_price)
         BATTERY_RENDER.append(self.battery.SoC)
-        ENERGY_GENERATED_RENDER.append(self.generation.current_generation(self.day+self.time_step))
+        ENERGY_GENERATED_RENDER.append(self.generation.current_generation(self.day*24+self.time_step))
         ENERGY_SOLD_RENDER.append(self.energy_sold)
         ENERGY_BOUGHT_RENDER.append(self.energy_bought)
-        GRID_PRICES_RENDER.append(self.grid.buy_prices[self.day+self.time_step])
+        GRID_PRICES_RENDER.append(self.grid.buy_prices[self.day*24+self.time_step])
         TCL_CONTROL_RENDER.append(self.control)
         TCL_CONSUMPTION_RENDER.append(self._compute_tcl_power())
         TOTAL_CONSUMPTION_RENDER.append(self._compute_tcl_power()+np.sum([l.load(self.time_step) for l in self.loads]))
-        TEMP_RENDER.append(self.temperatures[self.day+self.time_step])
+        TEMP_RENDER.append(self.temperatures[self.day*24+self.time_step])
         if self.time_step==self.iterations-1:
             fig=pyplot.figure()
             ax = pyplot.axes()
@@ -508,17 +515,16 @@ class MicroGridEnv(gym.Env):
             pyplot.plot(np.array(TEMP_RENDER), color='k')
             pyplot.title("Outdoors Temperatures")
             pyplot.xlabel("Time (h)")
-            # ax4.set_ylabel("BATTERY SOC")
             pyplot.show()
 
-            ax = pyplot.axes()
-            ax.set_facecolor("silver")
-            ax.set_xlabel("Time (h)")
-            ax.yaxis.grid(True)
-            pyplot.boxplot(np.array(SOCS_RENDER).T)
-            pyplot.title("TCLs SOCs")
-            pyplot.xlabel("Time (h)")
-            pyplot.show()
+            # ax = pyplot.axes()
+            # ax.set_facecolor("silver")
+            # ax.set_xlabel("Time (h)")
+            # ax.yaxis.grid(True)
+            # pyplot.boxplot(np.array(SOCS_RENDER).T)
+            # pyplot.title("TCLs SOCs")
+            # pyplot.xlabel("Time (h)")
+            # pyplot.show()
 
             ax = pyplot.axes()
             ax.set_facecolor("silver")
@@ -558,26 +564,27 @@ class MicroGridEnv(gym.Env):
             pyplot.show()
 
 
-            ax = pyplot.axes()
-            ax.set_facecolor("silver")
-            ax.set_ylabel("kW")
-            ax.set_xlabel("Time (h)")
-            ax.yaxis.grid(True)
-            pyplot.plot(np.array(BASE_LOAD), color='k')
-            pyplot.title("Expected individual basic load (L_b)")
-            pyplot.show()
+            # ax = pyplot.axes()
+            # ax.set_facecolor("silver")
+            # ax.set_ylabel("kW")
+            # ax.set_xlabel("Time (h)")
+            # ax.yaxis.grid(True)
+            # pyplot.plot(np.array(BASE_LOAD), color='k')
+            # pyplot.title("Expected individual basic load (L_b)")
+            # pyplot.show()
 
             ax = pyplot.axes()
             ax.set_facecolor("silver")
             ax.set_ylabel("kW")
             ax.set_xlabel("Time (h)")
             ax.yaxis.grid(True)
-            # ax4 = fig.add_subplot(4, 2, 5)
+            ax4 = fig.add_subplot(4, 2, 5)
             pyplot.plot(np.array(ENERGY_BOUGHT_RENDER),color='k')
-            pyplot.title("Energy Perchased")
+            pyplot.title("Energy Purchased")
             pyplot.xlabel("Time (h)")
             pyplot.ylabel("kW")
             pyplot.show()
+
             ax = pyplot.axes()
             ax.set_facecolor("silver")
             ax.set_ylabel("kW")
@@ -594,7 +601,8 @@ class MicroGridEnv(gym.Env):
             ax.set_ylabel("kW")
             ax.set_xlabel("Time (h)")
             ax.yaxis.grid(True)
-            # ax4 = fig.add_subplot(4, 2, 7)
+
+            ax4 = fig.add_subplot(4, 2, 7)
             pyplot.bar(x=np.array(np.arange(self.iterations)),height=TCL_CONTROL_RENDER,width=0.2)
             pyplot.bar(x=np.array(np.arange(self.iterations))+0.2,height=TCL_CONSUMPTION_RENDER,width=0.2)
             pyplot.title("TCL_CONTROL VS TCL_CONSUMPTION")
@@ -602,6 +610,7 @@ class MicroGridEnv(gym.Env):
             pyplot.xlabel("Time (h)")
             pyplot.ylabel("kW")
             pyplot.show()
+
             # np.save(name + 'Cost' + str(self.day) + '.npy', self.grid.total_cost(np.array(GRID_PRICES_RENDER),np.array(ENERGY_BOUGHT_RENDER)))
             # np.save(name + 'Energy_bought_sold' + str(self.day) + '.npy', np.array(ENERGY_BOUGHT_RENDER)-np.array(ENERGY_SOLD_RENDER))
             # np.save(name+'TOTAL_Consumption'+str(self.day)+'.npy' , TOTAL_CONSUMPTION_RENDER)
