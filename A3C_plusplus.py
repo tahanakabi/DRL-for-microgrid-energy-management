@@ -6,6 +6,7 @@
 # Made as part of blog series Let's make an A3C, available at
 # https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
 # author: Jaromir Janisch, 2017
+import sys
 
 import numpy as np
 import tensorflow as tf
@@ -18,34 +19,37 @@ from keras.layers import *
 from keras import backend as K
 
 from tcl_env_dqn_1 import *
+import os
+
+
+MODELS_DIRECTORY = 'success10'
 
 # -- constants
-RUN_TIME = 1
+RUN_TIME = 700
 THREADS = 16
-OPTIMIZERS = 1
-THREAD_DELAY = 0.00001
+OPTIMIZERS = 2
+THREAD_DELAY = 0.000001
 
-DAY0=30
-DAYN=60
+
+
 
 N_STEP_RETURN = 24
-GAMMA = 0.9
+GAMMA = 1.0
 GAMMA_N = GAMMA ** N_STEP_RETURN
 
-EPS_START = .4
+EPS_START = .5
 EPS_STOP = .001
-EPS_STEPS = 1000
+EPS_DECAY = 5e-5
 
-MIN_BATCH = 100
-TR_FREQ = 50
+MIN_BATCH = 200
+TR_FREQ = 100
+MEMORYCAPACITY = 500
 LEARNING_RATE = 1e-3
 
-LOSS_V = 0.007  # v loss coefficient
-LOSS_ENTROPY = 0.7  # entropy coefficient
+LOSS_V = 0.4  # v loss coefficient
+LOSS_ENTROPY = 1.0  # entropy coefficient
 
-REWARDS = {}
-for i in range(0,DAYN-DAY0):
-    REWARDS[i]=[]
+
 
 max_reward = -100.0
 TRAINING_ITERATIONS = 1
@@ -67,7 +71,9 @@ class Brain:
         self.session.run(tf.global_variables_initializer())
         self.default_graph = tf.get_default_graph()
         self.max_reward = max_reward
-        self.rewards = REWARDS.copy()
+        self.rewards = {}
+        for i in range(DAY0, DAYN):
+            self.rewards[i]=-100.0
 
         # self.default_graph.finalize()  # avoid modifications
 
@@ -104,6 +110,7 @@ class Brain:
         return s_t, a_t, r_t, minimize, loss_total
 
     def optimize(self):
+        # self.train_queue_copy serves as a coounter of the number of observvations we have between training sessions
         if len(self.train_queue_copy[0])<TR_FREQ or len(self.train_queue_copy[0])<MIN_BATCH :
             time.sleep(0)  # yield
             return
@@ -113,8 +120,10 @@ class Brain:
                 return  # we can't yield inside lock
             self.train_queue = random.sample(np.array(self.train_queue).T.tolist(), MIN_BATCH)
             self.train_queue = np.array(self.train_queue).T.tolist()
-            s, a, r, s_, s_mask = self.train_queue
+            s, a, r, s_, s_mask = self.train_queue_copy
             self.train_queue_copy = [[], [], [], [], []]
+            # if len(self.train_queue[0]) >= MEMORYCAPACITY:
+            #     self.train_queue_copy = [[], [], [], [], []]
 
             s = np.vstack(s)
             a = np.vstack(a)
@@ -128,33 +137,28 @@ class Brain:
         r = r + GAMMA_N * v * s_mask  # set v to 0 where s_ is terminal state
 
         s_t, a_t, r_t, minimize, loss = self.graph
-        self.new_max()
+        # self.new_max()
         print("Training...")
         for _ in range(TRAINING_ITERATIONS):
             self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
         print("Done...")
 
-    def new_max(self):
-        length = min([len(self.rewards[i]) for i in self.rewards.keys()])
-        print("--------" + str(length))
-        # if length==0:
-        #     print(self.rewards)
-        if length > 0:
-            R = np.average([np.average(self.rewards[i]) for i in self.rewards.keys()])
-            print("-------- R= " + str(R))
-            print("-------- max reward  " + str(self.max_reward))
-            if R > self.max_reward:
-                print('new max found:')
-                print(R)
-                print("-------------------------------------------------------------------------------------------------")
-                brain.model.save("A3C+++.h5")
-                print("Model saved")
-                self.max_reward = R
-            #     IMPROVED=True
-            # elif IMPROVED:
-            #     brain.model.load_weights("A3C+++.h5")
-            for i in range(0,DAYN-DAY0):
-                self.rewards[i] = []
+    # def new_max(self):
+    #     length = max([len(self.rewards[i]) for i in self.rewards.keys()])
+    #     # print("--------" + str(length))
+    #     if length>10:
+    #         R = np.average([np.average(self.rewards[i]) for i in self.rewards.keys() if self.rewards[i]!=[]])
+    #         print("-------- R= " + str(R))
+    #         print("-------- max reward  " + str(self.max_reward))
+    #         if R > self.max_reward:
+    #             print('new max found:')
+    #             print(R)
+    #             print("-------------------------------------------------------------------------------------------------")
+    #             brain.model.save("A3C+++" +str()+".h5")
+    #             print("Model saved")
+    #             self.max_reward = R
+    #         for i in range(0,DAYN-DAY0):
+    #             self.rewards[i] = []
 
     def train_push(self, s, a, r, s_):
         with self.lock_queue:
@@ -189,6 +193,22 @@ class Brain:
             p, v = self.model.predict(s)
             return p
 
+    def predict_p_vote(self, s):
+        # Boost learning. Several versions of the successfull models are voting for the best action
+        votes=[]
+        for filename in os.listdir(MODELS_DIRECTORY):
+            if filename.endswith(".h5"):
+                with self.default_graph.as_default():
+                    try:
+                        self.model.load_weights(MODELS_DIRECTORY+"/"+filename)
+                        p = self.model.predict(s)[0][0]
+                        votes.append(ACTIONS[np.argmax(p)])
+                    except:
+                        print(filename+"didn't vote!")
+                        pass
+        boosted_p = np.average(np.array(votes),axis=0)
+        return np.rint(boosted_p).astype(int)
+
     def predict_v(self, s):
         with self.default_graph.as_default():
             p, v = self.model.predict(s)
@@ -199,32 +219,31 @@ class Brain:
 frames = 0
 
 class Agent:
-    def __init__(self, eps_start, eps_end, eps_steps):
+    def __init__(self, eps_start, eps_end, eps_decay):
         self.eps_start = eps_start
         self.eps_end = eps_end
-        self.eps_steps = eps_steps
-        self.random_action=False
+        self.eps_decay = eps_decay
         self.memory = []  # used for n_step return
         self.R = 0.
 
     def getEpsilon(self):
-        if (frames >= self.eps_steps):
-            return self.eps_end
-        else:
-            return self.eps_start + frames * (self.eps_end - self.eps_start) / self.eps_steps  # linearly interpolate
+        return max(self.eps_start -  frames * self.eps_decay,self.eps_end)  # linearly interpolate
 
-    def act(self, s):
+    def act(self, s,render=False):
         eps = self.getEpsilon()
         global frames
         frames = frames + 1
 
         if random.random() < eps:
             p = np.random.dirichlet(np.ones(NUM_ACTIONS), size=1)
-            self.random_action=True
         else:
             s = np.array([s])
+            if render:
+                a = brain.predict_p_vote(s)
+                p= np.random.dirichlet(np.ones(NUM_ACTIONS), size=1)
+                print(a)
+                return list(a),p
             p = brain.predict_p(s)
-            self.random_action=False
         # a = np.random.choice(NUM_ACTIONS, p=p.reshape(NUM_ACTIONS,))
         a = np.argmax(p.reshape(NUM_ACTIONS,))
         return a,p
@@ -264,12 +283,12 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_steps=EPS_STEPS):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
         threading.Thread.__init__(self)
 
         self.render = render
-        self.env = MicroGridEnv()
-        self.agent = Agent(eps_start, eps_end, eps_steps)
+        self.env = MicroGridEnv(day0=DAY0,dayn=DAYN)
+        self.agent = Agent(eps_start, eps_end, eps_decay)
 
 
     def runEpisode(self,day=None):
@@ -277,25 +296,39 @@ class Environment(threading.Thread):
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            if self.render:
-                brain.model.load_weights("A3C+++.h5")
-                self.env.render(name='A3C++')
-            a, p = self.agent.act(s)
+            # if self.render:
+            #     self.env.render(name='A3C++')
+            a, p = self.agent.act(s,self.render)
             s_, r, done, _ = self.env.step(a)
 
             if done:  # terminal state
                 s_ = None
-            aa=np.zeros(shape=(NUM_ACTIONS,))
-            aa[a]=1
-            self.agent.train(s, aa, r, s_)
+
+            if not self.render:
+                aa = np.zeros(shape=(NUM_ACTIONS,))
+                aa[a] = 1
+                self.agent.train(s, aa, r, s_)
             s = s_
             R += r
             if done:
-                if self.render: self.env.render(name='A3C++')
+                # if self.render: self.env.render(name='A3C++')
                 break
         print(R)
-        REWARDS[self.env.day-DAY0].append(R)
-        brain.rewards[self.env.day-DAY0].append(R)
+        REWARDS[self.env.day].append(R)
+        if self.render:
+            return
+        if R > brain.rewards[self.env.day] and  self.agent.getEpsilon()<0.1:
+            print('new max found: '+str(R))
+            print("-------------------------------------------------------------------------------------------------")
+            try:
+                brain.model.save(MODELS_DIRECTORY+"/A3C++" + str(self.env.day) + ".h5")
+                print("Model saved")
+            except:
+                pass
+
+            brain.rewards[self.env.day] = R
+
+
 
 
     def run(self):
@@ -322,6 +355,13 @@ class Optimizer(threading.Thread):
 
 
 # -- main
+DAY0 = 50
+DAYN = 60
+
+REWARDS = {}
+for i in range(DAY0,DAYN):
+    REWARDS[i]=[]
+
 env_test = Environment(render=True, eps_start=0., eps_end=0.)
 NUM_STATE = env_test.env.observation_space.shape[0]
 NUM_ACTIONS = env_test.env.action_space.n
@@ -331,48 +371,62 @@ NUM_ACTIONS_DEF = 2
 NUM_ACTIONS_EXCESS = 2
 
 NONE_STATE = np.zeros(NUM_STATE)
-
 brain = Brain()  # brain is global in A3C
-# brain.model.load_weights("A3C+++.h5")
-
-# best_brain = copy.deepcopy(brain)
-
-envs = [Environment() for i in range(THREADS)]
-opts = [Optimizer() for i in range(OPTIMIZERS)]
-t0=time.time()
-for o in opts:
-    o.start()
+# Training
+###########################################################################################################
 #
-for e in envs:
-    e.start()
+# brain.model.load_weights("success/A3C+++58.h5")
 
-time.sleep(RUN_TIME)
+if str(sys.argv[1])=='train':
 
-for e in envs:
-    e.stop()
-for e in envs:
-    e.join()
+    envs = [Environment() for i in range(THREADS)]
+    opts = [Optimizer() for i in range(OPTIMIZERS)]
+    t0=time.time()
 
-for o in opts:
-    o.stop()
-for o in opts:
-    o.join()
-# AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-print("Training finished")
-print('training_time:', time.time()-t0)
-# brain.model.save("A3C++1.h5")
-brain.new_max()
-# for day in range(DAY0,DAYN):
-#     env_test.runEpisode(day)
+    for o in opts:
+        o.start()
+
+    for e in envs:
+        e.start()
+
+    time.sleep(RUN_TIME)
+
+    for e in envs:
+        e.stop()
+    for e in envs:
+        e.join()
+
+    for o in opts:
+        o.stop()
+    for o in opts:
+        o.join()
+    brain.model.save("A3C+++"  + ".h5")
+    print("Training finished")
+    print('training_time:', time.time()-t0)
+    import pickle
+    with open("REWARDS_A3C+++f.pkl", 'wb') as f:
+        pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
+# ##################################################################################################################################################
+# # # Test
 
 while True:
+    print('Models directory:')
+    try:
+        MODELS_DIRECTORY= input()
+    except NameError:
+        print(NameError)
+        break
     print("Day: ")
-    day= int(input())
-    env_test.runEpisode(day)
+    try:
+        # day= int(input())
+        for day in range(DAY0,DAYN):
+            env_test.runEpisode(day)
+        print("average reward: ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
+    except NameError:
+        print(NameError)
+        break
 
-# import pickle
-# with open("REWARDS_A3C+++f.pkl",'wb') as f:
-#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+
 
 # for rew in REWARDS.values():
 #     print(np.average(list(rew)))

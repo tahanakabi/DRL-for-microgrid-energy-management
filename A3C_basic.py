@@ -17,34 +17,35 @@ from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn import *
+from tcl_env_dqn_1 import *
 import pickle
 
 # -- constants
-RUN_TIME = 1
+RUN_TIME = 1000
 THREADS = 16
 OPTIMIZERS = 1
 THREAD_DELAY = 0.00001
 
-GAMMA = 0.9
+GAMMA = 1.0
 
 N_STEP_RETURN = 24
 GAMMA_N = GAMMA ** N_STEP_RETURN
 
-EPS_START = 0.4
-EPS_STOP = .001
-EPS_STEPS = 1000
+EPS_START = 0.5
+EPS_STOP = .004
+EPS_DECAY = 5e-5
 
-MIN_BATCH = 500
+MIN_BATCH = 200
 LEARNING_RATE = 1e-3
 
-LOSS_V = 0.007  # v loss coefficient
-LOSS_ENTROPY = 0.05  # entropy coefficient
+LOSS_V = 0.4  # v loss coefficient
+LOSS_ENTROPY = 1.0  # entropy coefficient
 
+DAY0=50
+DAYN=60
 REWARDS = {}
-for i in range(11):
+for i in range(DAY0,DAYN):
     REWARDS[i]=[]
-
 TRAINING_ITERATIONS = 1
 
 # ---------
@@ -69,9 +70,15 @@ class Brain:
     def _build_model(self):
 
         l_input = Input(batch_shape=(None, NUM_STATE))
-        l_dense = Dense(100, activation='relu')(l_input)
-        # l_dense = Dropout(0.3)(l_dense)
-        out= Dense(NUM_ACTIONS, activation='softmax')(l_dense)
+        l_input1 = Lambda(lambda x: x[:, 0:NUM_STATE - 7])(l_input)
+        l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
+        l_input1 = Reshape((DEFAULT_NUM_TCLS, 1))(l_input1)
+        l_Pool = AveragePooling1D(pool_size=NUM_STATE - 7)(l_input1)
+        l_Pool = Reshape([1])(l_Pool)
+        l_dense = Concatenate()([l_Pool, l_input2])
+        l_dense = Dense(100, activation='relu')(l_dense)
+        l_dense = Dropout(0.3)(l_dense)
+        out = Dense(NUM_ACTIONS, activation='softmax')(l_dense)
         out_value = Dense(1, activation='linear')(l_dense)
         model = Model(inputs=l_input, outputs=[out, out_value])
         # model = Model(inputs=l_input, outputs=[out_tcl_actions,out_price_actions,out_deficiency_actions,out_excess_actions, out_value])
@@ -154,19 +161,16 @@ class Brain:
 frames = 0
 
 class Agent:
-    def __init__(self, eps_start, eps_end, eps_steps):
+    def __init__(self, eps_start, eps_end, eps_decay):
         self.eps_start = eps_start
         self.eps_end = eps_end
-        self.eps_steps = eps_steps
+        self.eps_decay = eps_decay
         self.random_action=False
         self.memory = []  # used for n_step return
         self.R = 0.
 
     def getEpsilon(self):
-        if (frames >= self.eps_steps):
-            return self.eps_end
-        else:
-            return self.eps_start + frames * (self.eps_end - self.eps_start) / self.eps_steps  # linearly interpolate
+        return max(self.eps_start -  frames * self.eps_decay,self.eps_end)  # linearly interpolate
 
     def act(self, s):
         eps = self.getEpsilon()
@@ -223,23 +227,23 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_steps=EPS_STEPS):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
         threading.Thread.__init__(self)
 
         self.render = render
         self.env = MicroGridEnv()
-        self.agent = Agent(eps_start, eps_end, eps_steps)
+        self.agent = Agent(eps_start, eps_end, eps_decay)
         self.episode_counter=0
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day=day)
+        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            if self.render:
-                # brain.model.load_weights("A3C-v=006_avg5.h5")
-                self.env.render(name='A3C+')
+            # if self.render:
+            #     # brain.model.load_weights("A3C-v=006_avg5.h5")
+            #     self.env.render(name='A3C+')
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
 
@@ -252,7 +256,7 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-                if self.render: self.env.render(name='A3C+')
+                # if self.render: self.env.render(name='A3C+')
                 break
         print(R)
 
@@ -302,30 +306,32 @@ envs = [Environment() for i in range(THREADS)]
 opts = [Optimizer() for i in range(OPTIMIZERS)]
 import time
 t0=time.time()
-# for o in opts:
-#     o.start()
-# for e in envs:
-#     e.start()
-# time.sleep(RUN_TIME)
-# for e in envs:
-#     e.stop()
-# for e in envs:
-#     e.join()
-# for o in opts:
-#     o.stop()
-# for o in opts:
-#     o.join()
+for o in opts:
+    o.start()
+for e in envs:
+    e.start()
+time.sleep(RUN_TIME)
+for e in envs:
+    e.stop()
+for e in envs:
+    e.join()
+for o in opts:
+    o.stop()
+for o in opts:
+    o.join()
 # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-# print("Training finished")
-# print('training_time:', time.time()-t0)
-# brain.model.load_weights("A3C+++.h5")
+print("Training finished")
+print('training_time:', time.time()-t0)
+with open("REWARDS_A3C_basic.pkl",'wb') as f:
+    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+brain.model.save("A3C.h5")
 # for rew in REWARDS.values():
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
-# for day in range(11):
-env_test.runEpisode(day=3)
-# print(np.average([list(REWARDS[i])[-1] for i in range(11)]))
+for day in range(DAY0,DAYN):
+    env_test.runEpisode(day=day)
+print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
 
 
 # with open("REWARDS_A3C_basic.pkl",'wb') as f:

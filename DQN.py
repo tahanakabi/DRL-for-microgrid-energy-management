@@ -2,12 +2,6 @@
 # -------------------
 #
 # This code demonstrates use of a basic Q-network (without target network)
-# to solve OpenGym CartPole-v0 problem.
-#
-# Made as part of blog series Let's make a DQN, available at:
-# https://jaromiru.com/2016/10/03/lets-make-a-dqn-implementation/
-#
-# author: Jaromir Janisch, 2016
 
 
 # --- enable this to run on GPU
@@ -24,25 +18,30 @@ from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-
+DAY0 = 50
+DAYN = 60
 REWARDS = {}
-for i in range(11):
+for i in range(DAY0,DAYN,1):
     REWARDS[i]=[]
 
 class Brain:
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
         self.actionCnt = actionCnt
-
         self.model = self._createModel()
-        # self.model.load_weights("cartpole-basic.h5")
 
     def _createModel(self):
         l_input = Input(batch_shape=(None, self.stateCnt))
-        l_dense=Dense(100, activation='relu')(l_input)
-        # l_dense = Dropout(0.3)(l_dense)
-        out_value = Dense(self.actionCnt, activation='linear')(l_dense)
-
+        l_input1 = Lambda(lambda x: x[:, 0:self.stateCnt - 7])(l_input)
+        l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
+        l_input1 = Reshape((DEFAULT_NUM_TCLS, 1))(l_input1)
+        l_Pool = AveragePooling1D(pool_size=self.stateCnt - 7)(l_input1)
+        l_Pool = Reshape([1])(l_Pool)
+        l_dense = Concatenate()([l_Pool, l_input2])
+        l_dense = Dense(100, activation='relu')(l_dense)
+        l_dense = Dropout(0.3)(l_dense)
+        out_value = Dense(80, activation='linear')(l_dense)
+        # model = Model(inputs=l_input, outputs=[out_tcl_actions,out_price_actions,out_deficiency_actions,out_excess_actions, out_value])
         model = Model(inputs=l_input, outputs=out_value)
         model._make_predict_function()
         opt = RMSprop(lr=0.00025)
@@ -82,16 +81,17 @@ class Memory:  # stored as ( s, a, r, s_ )
 MEMORY_CAPACITY = 500
 BATCH_SIZE = 200
 
-GAMMA = 0.9
+GAMMA = 1.0
 
-MAX_EPSILON = 0.4
-MIN_EPSILON = 0.001
-LAMBDA = 0.0004  # speed of decay
+
+# MAX_EPSILON = 0.4
+# MIN_EPSILON = 0.004
+# LAMBDA =5e-5  # speed of decay
 
 
 class Agent:
     steps = 0
-    epsilon = MAX_EPSILON
+    # epsilon = MAX_EPSILON
 
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
@@ -103,16 +103,17 @@ class Agent:
     def act(self, s, deter):
         if deter == True:
             return numpy.argmax(self.brain.predictOne(s))
-        if random.random() < self.epsilon:
-            return random.randint(0, self.actionCnt - 1)
-        return numpy.argmax(self.brain.predictOne(s))
+        # if random.random() < self.epsilon:
+        return random.randint(0, self.actionCnt - 1)
+        # return numpy.argmax(self.brain.predictOne(s))
 
     def observe(self, sample):  # in (s, a, r, s_) format
         self.memory.add(sample)
 
-        # slowly decrease Epsilon based on our eperience
-        self.steps += 1
-        self.epsilon = MIN_EPSILON + (MAX_EPSILON - MIN_EPSILON) * math.exp(-LAMBDA * self.steps)
+        # # slowly decrease Epsilon based on our eperience
+        # self.steps += 1
+        # self.epsilon = max(MAX_EPSILON -LAMBDA * self.steps, MIN_EPSILON)
+        # print(self.epsilon)
 
     def replay(self):
         batch = self.memory.sample(BATCH_SIZE)
@@ -149,7 +150,7 @@ class Agent:
 
 
 # -------------------- ENVIRONMENT ---------------------
-from tcl_env_dqn import *
+from tcl_env_dqn_1 import *
 
 class Environment:
     def __init__(self, render = False):
@@ -158,10 +159,10 @@ class Environment:
 
 
     def run(self, agent, day=None):
-        s = self.env.reset(day=day)
+        s = self.env.reset(day0=DAY0, dayn=DAYN, day= day)
         R = 0
         while True:
-            if self.render: self.env.render()
+            # if self.render: self.env.render()
             a = agent.act(s,deter=self.render)
 
             s_, r, done, info = self.env.step(a)
@@ -175,10 +176,11 @@ class Environment:
             R += r
 
             if done:
-                if self.render: self.env.render()
+                # if self.render: self.env.render()
                 break
         REWARDS[self.env.day].append(R)
-        print("Total reward:", R)
+        print("Day ", self.env.day)
+        print("R= ", R)
 
 
 # -------------------- MAIN ----------------------------
@@ -186,26 +188,27 @@ if __name__=="__main__":
     # PROBLEM = TCLEnv
     env = Environment()
 
+
     stateCnt = env.env.observation_space.shape[0]
     actionCnt = env.env.action_space.n
-
     agent = Agent(stateCnt, actionCnt)
 
     import pickle
     import time
     t0=time.time()
-    for _ in range(1000):
-        env.run(agent)
-    print('training_time:', time.time()-t0)
-    agent.brain.model.save_weights("DQN.h5")
-    with open("REWARDS_DQN.pkl",'wb') as f:
-        pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-    for rew in REWARDS.values():
-        # print(np.average(list(rew)))
-        pyplot.plot(list(rew))
-    pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
-    pyplot.show()
+    # for _ in range(1000):
+    #     env.run(agent)
+    # print('training_time:', time.time()-t0)
+    # agent.brain.model.save_weights("DQN.h5")
+    # with open("REWARDS_DQN.pkl",'wb') as f:
+    #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+    # for rew in REWARDS.values():
+    #     print(np.average(list(rew)))
+    #     pyplot.plot(list(rew))
+    # pyplot.legend(["Day {}".format(i) for i in range(DAY0,DAY0)], loc = 'upper right')
+    # pyplot.show()
+    agent.brain.model.load_weights("DQN.h5")
     env_test=Environment(render=True)
-    for day in range(11):
+    for day in range(DAY0,DAYN):
         env_test.run(agent,day=day)
-    print(np.average([list(REWARDS[i])[-1] for i in range(11)]))
+    print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))

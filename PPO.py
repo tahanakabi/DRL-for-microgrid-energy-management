@@ -21,33 +21,36 @@ from keras import backend as K
 from tcl_env_dqn_1 import *
 
 # -- constants
-RUN_TIME = 5000*10/(42*10)
+RUN_TIME = 700
 THREADS = 16
 OPTIMIZERS = 5
 THREAD_DELAY = 0.00001
 
-GAMMA = 0.9
+GAMMA = 1.0
 
 N_STEP_RETURN = 24
 GAMMA_N = GAMMA ** N_STEP_RETURN
 
 EPS_START = .4
 EPS_STOP = .001
-EPS_STEPS = 1000
+EPS_DECAY = 5e-5
 
-MIN_BATCH = 100
+MIN_BATCH = 200
 TR_FREQ = 100
 LEARNING_RATE = 1e-3
 
-LOSS_V = 0.006  # v loss coefficient
-LOSS_ENTROPY = 0.05  # entropy coefficient
+LOSS_V = 0.2  # v loss coefficient
+LOSS_ENTROPY = 0.2 # entropy coefficient
+
+DAY0 = 50
+DAYN = 60
 
 REWARDS = {}
-for i in range(11):
+for i in range(DAY0,DAYN):
     REWARDS[i]=[]
 
-max_reward = 0.21
-TRAINING_ITERATIONS = 4
+max_reward = -10.0
+TRAINING_ITERATIONS = 3
 
 PPO_EPS=0.2
 
@@ -134,18 +137,18 @@ class Brain:
         r = r + GAMMA_N * v * s_mask  # set v to 0 where s_ is terminal state
 
         s_t, a_t, r_t, minimize, loss, old_log_p_t, log_prob = self.graph
-        length=max([len(self.rewards[i]) for i in self.rewards.keys()])
-        if length>6:
-            R = np.average([np.average(list(self.rewards.values())[i]) for i in self.rewards.keys()])
-            if R>self.max_reward:
-                print('new max found:')
-                print(R)
-                print("---------------------------")
-                brain.model.save("PPO+++.h5")
-                print("Model saved")
-                self.max_reward = R
-            for i in range(11):
-                self.rewards[i] = []
+        # length=max([len(self.rewards[i]) for i in self.rewards.keys()])
+        # if length>6:
+        #     R = np.average([np.average(list(self.rewards.values())[i]) for i in self.rewards.keys()])
+        #     if R>self.max_reward:
+        #         print('new max found:')
+        #         print(R)
+        #         print("---------------------------")
+        #         brain.model.save("PPO+++.h5")
+        #         print("Model saved")
+        #         self.max_reward = R
+        #     for i in range(11):
+        #         self.rewards[i] = []
         print("Training...")
         LOSS_LIST=[]
         old_log_p=self.session.run(log_prob, feed_dict={s_t: s, a_t: a})
@@ -198,19 +201,16 @@ class Brain:
 frames = 0
 
 class Agent:
-    def __init__(self, eps_start, eps_end, eps_steps):
+    def __init__(self, eps_start, eps_end, eps_decay):
         self.eps_start = eps_start
         self.eps_end = eps_end
-        self.eps_steps = eps_steps
+        self.eps_decay = eps_decay
         self.random_action=False
         self.memory = []  # used for n_step return
         self.R = 0.
 
     def getEpsilon(self):
-        if (frames >= self.eps_steps):
-            return self.eps_end
-        else:
-            return self.eps_start + frames * (self.eps_end - self.eps_start) / self.eps_steps  # linearly interpolate
+        return max(self.eps_start -  frames * self.eps_decay,self.eps_end)  # linearly interpolate
 
     def act(self, s):
         eps = self.getEpsilon()
@@ -266,22 +266,22 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_steps=EPS_STEPS):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
         threading.Thread.__init__(self)
 
         self.render = render
         self.env = MicroGridEnv()
-        self.agent = Agent(eps_start, eps_end, eps_steps)
+        self.agent = Agent(eps_start, eps_end, eps_decay)
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day=day)
+        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            if self.render:
-                brain.model.load_weights("PPO+++.h5")
-                self.env.render(name='PPO+++')
+            # if self.render:
+                # brain.model.load_weights("PPO+++.h5")
+                # self.env.render(name='PPO+++')
             a, p = self.agent.act(s)
             s_, r, done, info = self.env.step(a)
 
@@ -294,10 +294,10 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-                if self.render: self.env.render('PPO+++')
+                # if self.render: self.env.render('PPO+++')
                 break
         print(R)
-        # REWARDS[self.env.day].append(R)
+        REWARDS[self.env.day].append(R)
         brain.rewards[self.env.day].append(R)
 
     def run(self):
@@ -335,33 +335,36 @@ NUM_ACTIONS_EXCESS = 2
 NONE_STATE = np.zeros(NUM_STATE)
 
 brain = Brain()  # brain is global in A3C
-brain.model.load_weights("PPO02.h5")
+# brain.model.load_weights("PPO02.h5")
 
 
-# envs = [Environment() for i in range(THREADS)]
-# opts = [Optimizer() for i in range(OPTIMIZERS)]
-# t0=time.time()
-# for o in opts:
-#     o.start()
-#
-# for e in envs:
-#     e.start()
-#
-# time.sleep(RUN_TIME)
-#
-# for e in envs:
-#     e.stop()
-# for e in envs:
-#     e.join()
-#
-# for o in opts:
-#     o.stop()
-# for o in opts:
-#     o.join()
+envs = [Environment() for i in range(THREADS)]
+opts = [Optimizer() for i in range(OPTIMIZERS)]
+t0=time.time()
+for o in opts:
+    o.start()
+
+for e in envs:
+    e.start()
+
+time.sleep(RUN_TIME)
+
+for e in envs:
+    e.stop()
+for e in envs:
+    e.join()
+
+for o in opts:
+    o.stop()
+for o in opts:
+    o.join()
 # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-# print("Training finished")
-# print('training_time:', time.time()-t0)
-# brain.model.save("PPO+++.h5")
+print("Training finished")
+print('training_time:', time.time()-t0)
+import pickle
+with open("REWARDS_PPO++.pkl", 'wb') as f:
+    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+brain.model.save("PPO+++.h5")
 # brain.model.save("PPO++.h5")
 
 
@@ -371,15 +374,12 @@ brain.model.load_weights("PPO02.h5")
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
 
+for day in range(DAY0,DAYN):
+    env_test.runEpisode(day=day)
+print("average= ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
 
-# for day in range(11):
-env_test.runEpisode(day=150)
 
 
-# print(np.average([list(REWARDS[i])[-1] for i in range(11)]))
-# import pickle
-# with open("REWARDS_PPO_basic.pkl",'wb') as f:
-#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 # pyplot.plot(REWARDS)
 # pyplot.show()
 
