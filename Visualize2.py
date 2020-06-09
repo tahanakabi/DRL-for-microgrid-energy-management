@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import stats
 
-names=['SARSA', 'A3C', 'A3C+','PPO++', 'PPO+++','baseline1','baseline2']
+names=['SARSA', 'A3C', 'A3C+++','PPO', 'PPO+++','baseline1','baseline2']
 actual_names=['SARSA', 'A3C', 'A3C++','PPO', 'PPO++','Baseline1','Baseline2']
 graphs=['Cost', 'Energy_bought_sold','TOTAL_Consumption']
 actual_graphs=['Average energy cost per day', 'Energy exchanged with the grid per hour','Total energy consumption per hour ','Peak shaving performance']

@@ -1,0 +1,109 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Microgrid Parameters</h1>
+
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+
+        <p>
+            {{ form.iterations.label }}<br>
+            {{ form.iterations(size=32) }}
+            {% for error in form.iterations.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.num_tcls.label }}<br>
+            {{ form.num_tcls(size=32) }}
+            {% for error in form.num_tcls.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.tcl_power.label }}<br>
+            {{ form.tcl_power(size=32) }}
+            {% for error in form.tcl_power.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.tcl_price.label }}<br>
+            {{ form.tcl_price(size=32) }}
+            {% for error in form.tcl_price.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.num_loads.label }}<br>
+            {{ form.num_loads(size=32) }}
+            {% for error in form.num_loads.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.normal_price.label }}<br>
+            {{ form.normal_price(size=32) }}
+            {% for error in form.normal_price.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.day0.label }}<br>
+            {{ form.day0(size=32) }}
+            {% for error in form.day0.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.power_cost.label }}<br>
+            {{ form.power_cost(size=32) }}
+            {% for error in form.power_cost.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.imp_fees.label }}<br>
+            {{ form.imp_fees(size=32) }}
+            {% for error in form.imp_fees.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            {{ form.exp_fees.label }}<br>
+            {{ form.exp_fees(size=32) }}
+            {% for error in form.exp_fees.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.battery_capacity.label }}<br>
+            {{ form.battery_capacity(size=32) }}
+            {% for error in form.battery_capacity.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.max_discharge.label }}<br>
+            {{ form.max_discharge(size=32) }}
+            {% for error in form.max_discharge.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.max_charge.label }}<br>
+            {{ form.max_charge(size=32) }}
+            {% for error in form.max_charge.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

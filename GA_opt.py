@@ -3,39 +3,42 @@ import random
 import numpy as np
 from tcl_env_dqn_1 import *
 POP_SHAPE=[100,24,4]
-P_C = 0.99 #Probability of crossover
+P_C = 0.8 #Probability of crossover
 P_M = 0.5 #Probability of mutation
 
 MAX_ITER=200
 EARLY_STOP=50
 V=[4,5,2,2]
 
+DAY0=50
+DAYN=60
 
-def objective_function(element,render=False):
+def objective_function(element, day, render=False):
     # assert (element.shape == POP_SHAPE[1:])
     # print(element.shape)
-    enviro = MicroGridEnv(day0=59,dayn=60)
-    state = enviro.reset(day=59)
+    # print(day)
+    enviro = MicroGridEnv(day0=day,dayn=day+1)
+    state = enviro.reset(day=day)
     R=0
     for action in element:
         if render: enviro.render()
         s_, r, done, _ = enviro.step(list(action))
         R += r
-    print(R)
+    # print(R)
     return R
 
 
-def evaluation(pop):
+def evaluation(pop,day):
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results=[]
         for p in pop:
-            results.append(executor.submit(objective_function, p))
+            results.append(executor.submit(objective_function, *(p,day)))
     fitness=[r.result()for r in results]
     return fitness
 
 
 
-def initialization():
+def initialization(day):
     """
     Initalizing the population which shape is self.pop_shape(0-1 matrix).
     """
@@ -43,7 +46,7 @@ def initialization():
     pop = np.array([np.random.randint(low=0, high=i, size=POP_SHAPE[0:2]) for i in V])
     pop=pop.transpose((1,2,0))
 
-    fitness = evaluation(pop)
+    fitness = evaluation(pop,day)
     return pop,fitness
 
 def crossover(ind_0, ind_1):
@@ -106,14 +109,14 @@ def rws(size, fitness):
     idx = np.random.choice(np.arange(len(fitness_)), size=size, replace=True, p=probability)
     return idx
 
-def run():
+def run(day):
     """
     Run the genetic algorithm.
     Ret:
         global_best_ind: The best indiviudal during the evolutionary process.
         global_best_fitness: The fitness of the global_best_ind.
     """
-    pop, fitness = initialization()
+    pop, fitness = initialization(day)
     print(fitness)
     best_index = np.argmax(fitness)
     global_best_fitness = fitness[best_index]
@@ -138,7 +141,7 @@ def run():
             next_generation.append(indi_1)
 
         pop = np.array(next_generation)
-        fitness = evaluation(pop)
+        fitness = evaluation(pop,day)
         eva_times += POP_SHAPE[0]
 
         if np.max(fitness) > global_best_fitness:
@@ -161,33 +164,41 @@ def run():
 
 
 if __name__=="__main__":
+    REWARDS=[]
+    for day in range(DAY0,DAYN):
+        solution , R = run(day)
+        objective_function(solution,day=day, render=False)
+        REWARDS.append(R)
+    import pickle
+    with open("GA_OPT.pkl", 'wb') as f:
+        pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
 
-    # fitness = np.zeros(POP_SHAPE[0])
-    # pop = np.zeros(POP_SHAPE)
-    # solution , R= run()
-    solution=np.array([[0,2,0,1],[0,4,0,1]
-            ,[2,2,1,1]
-            ,[0,2,0,1]
-            ,[0,2,1,0]
-            ,[0,4,0,0]
-            ,[1,3,1,0]
-            ,[1,4,0,1]
-            ,[3,3,1,0]
-            ,[0,2,0,0]
-            ,[1,4,1,1]
-            ,[1,4,0,1]
-            ,[3,2,1,0]
-            ,[2,4,1,1]
-            ,[0,2,0,1]
-            ,[0,2,0,0]
-            ,[0,3,1,1]
-            ,[3,4,1,1]
-            ,[3,4,1,0]
-            ,[1,2,1,1]
-            ,[0,3,0,0]
-            ,[0,2,1,1]
-            ,[2,3,1,0]
-            ,[3,4,1,1]])
+
+
+
+    # solution=np.array([[0,2,0,1],[0,4,0,1]
+    #         ,[2,2,1,1]
+    #         ,[0,2,0,1]
+    #         ,[0,2,1,0]
+    #         ,[0,4,0,0]
+    #         ,[1,3,1,0]
+    #         ,[1,4,0,1]
+    #         ,[3,3,1,0]
+    #         ,[0,2,0,0]
+    #         ,[1,4,1,1]
+    #         ,[1,4,0,1]
+    #         ,[3,2,1,0]
+    #         ,[2,4,1,1]
+    #         ,[0,2,0,1]
+    #         ,[0,2,0,0]
+    #         ,[0,3,1,1]
+    #         ,[3,4,1,1]
+    #         ,[3,4,1,0]
+    #         ,[1,2,1,1]
+    #         ,[0,3,0,0]
+    #         ,[0,2,1,1]
+    #         ,[2,3,1,0]
+    #         ,[3,4,1,1]])
     # solution50=np.array([[1, 1, 0, 1]
     #     , [1, 0, 0, 1]
     #     , [3, 0, 1, 1]
@@ -212,4 +223,4 @@ if __name__=="__main__":
     #     , [1, 3, 1, 0]
     #     , [3, 3, 1, 0]
     #     , [2, 4, 0, 0]])
-    objective_function(solution,render=True)
+    # objective_function(solution,render=True)

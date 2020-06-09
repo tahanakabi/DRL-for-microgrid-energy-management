@@ -240,8 +240,8 @@ class Environment(threading.Thread):
 
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            if self.render:
-                self.env.render()
+            # if self.render:
+            #     self.env.render()
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
 
@@ -254,7 +254,7 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-                if self.render: self.env.render()
+                # if self.render: self.env.render()
                 break
         print(R)
 
@@ -302,46 +302,45 @@ NONE_STATE = np.zeros(NUM_STATE)
 EPISODE_COUNTER = 0
 brain = Brain()  # brain is global in A3C
 
-envs = [Environment() for i in range(THREADS)]
-opts = [Optimizer() for i in range(OPTIMIZERS)]
-import time
-t0=time.time()
-for o in opts:
-    o.start()
-
-for e in envs:
-    e.start()
-
-time.sleep(RUN_TIME)
-
-for e in envs:
-    e.stop()
-for e in envs:
-    e.join()
-
-for o in opts:
-    o.stop()
-for o in opts:
-    o.join()
-# AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-print("Training finished")
-print('training_time:', time.time()-t0)
-brain.model.save("AC.h5")
-with open("REWARDS_AC.pkl",'wb') as f:
-    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# envs = [Environment() for i in range(THREADS)]
+# opts = [Optimizer() for i in range(OPTIMIZERS)]
+# import time
+# t0=time.time()
+# for o in opts:
+#     o.start()
+#
+# for e in envs:
+#     e.start()
+#
+# time.sleep(RUN_TIME)
+#
+# for e in envs:
+#     e.stop()
+# for e in envs:
+#     e.join()
+#
+# for o in opts:
+#     o.stop()
+# for o in opts:
+#     o.join()
+# # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
+# print("Training finished")
+# print('training_time:', time.time()-t0)
+# brain.model.save("AC.h5")
+# with open("REWARDS_AC.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 #
 # for rew in REWARDS.values():
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
 
-
+brain.model.load_weights("AC.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
-
-
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-
+with open("REWARDS_AC.pkl",'wb') as f:
+    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 # pyplot.plot(REWARDS)
 # pyplot.show()
 

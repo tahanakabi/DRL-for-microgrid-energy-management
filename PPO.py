@@ -338,34 +338,33 @@ brain = Brain()  # brain is global in A3C
 # brain.model.load_weights("PPO02.h5")
 
 
-envs = [Environment() for i in range(THREADS)]
-opts = [Optimizer() for i in range(OPTIMIZERS)]
-t0=time.time()
-for o in opts:
-    o.start()
-
-for e in envs:
-    e.start()
-
-time.sleep(RUN_TIME)
-
-for e in envs:
-    e.stop()
-for e in envs:
-    e.join()
-
-for o in opts:
-    o.stop()
-for o in opts:
-    o.join()
-# AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-print("Training finished")
-print('training_time:', time.time()-t0)
-import pickle
-with open("REWARDS_PPO++.pkl", 'wb') as f:
-    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-brain.model.save("PPO+++.h5")
-# brain.model.save("PPO++.h5")
+# envs = [Environment() for i in range(THREADS)]
+# opts = [Optimizer() for i in range(OPTIMIZERS)]
+# t0=time.time()
+# for o in opts:
+#     o.start()
+#
+# for e in envs:
+#     e.start()
+#
+# time.sleep(RUN_TIME)
+#
+# for e in envs:
+#     e.stop()
+# for e in envs:
+#     e.join()
+#
+# for o in opts:
+#     o.stop()
+# for o in opts:
+#     o.join()
+# # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
+# print("Training finished")
+# print('training_time:', time.time()-t0)
+# import pickle
+# with open("REWARDS_PPO++.pkl", 'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# brain.model.save("PPO+++.h5")
 
 
 # for rew in REWARDS.values():
@@ -373,11 +372,13 @@ brain.model.save("PPO+++.h5")
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
-
+brain.model.load_weights("PPO+++.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print("average= ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-
+import pickle
+with open("REWARDS_PPO++.pkl", 'wb') as f:
+    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 
 
 # pyplot.plot(REWARDS)
