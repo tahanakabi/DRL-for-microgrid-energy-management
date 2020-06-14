@@ -1,13 +1,11 @@
 # -------------------
 #
-# This code demonstrates use of a basic Q-network (without target network)
-# to solve OpenGym CartPole-v0 problem.
+# SARSA algorithm for Microgrid energy management
 #
-# Made as part of blog series Let's make a DQN, available at:
-# https://jaromiru.com/2016/10/03/lets-make-a-dqn-implementation/
-#
-# author: Jaromir Janisch, 2016
 
+# Author:
+#
+# Taha Nakabi
 
 # --- enable this to run on GPU
 import os
@@ -166,8 +164,8 @@ class Agent:
 from tcl_env_dqn_1 import *
 
 class Environment:
-    def __init__(self, render = False):
-        self.env = MicroGridEnv()
+    def __init__(self, render = False, **kwargs):
+        self.env = MicroGridEnv(**kwargs)
         self.render=render
 
 
@@ -176,11 +174,10 @@ class Environment:
         R = 0
         while True:
 
-            # if self.render: self.env.render('SARSA')
-
             a = agent.act(s, deter=self.render)
 
             s_, r, done, info = self.env.step(a)
+            if self.render: self.env.render('SARSA')
 
             if done:  # terminal state
                 s_ = None
@@ -192,11 +189,8 @@ class Environment:
             R += r
 
             if done:
-                if self.render:
-                    pass
-                    # self.env.render('SARSA')
-                else:
-                    agent.replay()
+
+                agent.replay()
                 break
 
         REWARDS[self.env.day].append(R)
