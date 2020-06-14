@@ -1,17 +1,21 @@
-# OpenGym CartPole-v0 with A3C on GPU
+# A3C++ a modified version of Asynchronous Advantage actor critic algorithm
 # -----------------------------------
 #
-# A3C implementation with GPU optimizer threads.
+# A3C paper: https://arxiv.org/abs/1602.01783
 #
-# Made as part of blog series Let's make an A3C, available at
+# The A3C implementation is available at:
 # https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
-# author: Jaromir Janisch, 2017
+# by: Jaromir Janisch, 2017
 
+# Two variations are implemented: A memory replay and a deterministic search following argmax(pi) instead of pi as a probability distribution
+# Every action selection is made following the action with the highest probability pi
 
-import numpy as np
+# Author: Taha Nakabi
+
+# Args: 'train' for training the model anything else will skip the training and try to use already saved models
+
 import tensorflow as tf
-
-from matplotlib import pyplot
+import numpy as np
 import gym, time, random, threading
 from keras.callbacks import TensorBoard
 from keras.models import *
@@ -24,41 +28,40 @@ import os
 
 
 
-
+# This is where the models are saved and retrieved from
 MODELS_DIRECTORY = 'success10'
+# For tensor board
 NAME= "A3C++logs/A3C++{}".format(int(time.time()))
 # -- constants
+# Threading parameters
 RUN_TIME = 700
 THREADS = 16
 OPTIMIZERS = 2
 THREAD_DELAY = 0.000001
-
-
-
-
+# Reinforcement learning parameters
 N_STEP_RETURN = 24
 GAMMA = 1.0
 GAMMA_N = GAMMA ** N_STEP_RETURN
-
+# Epsilon greedy strategy parameters
 EPS_START = .5
 EPS_STOP = .001
 EPS_DECAY = 5e-5
-
+# Memory replay parameters
 MIN_BATCH = 200
 TR_FREQ = 100
-MEMORYCAPACITY = 500
-LEARNING_RATE = 1e-3
-
+# Advantage actor-critic parameters
 LOSS_V = 0.4  # v loss coefficient
 LOSS_ENTROPY = 1.0  # entropy coefficient
-
-
-
+# Initializing max rewards for models' saving purposes
 max_reward = -100.0
+# Training iterations and learning rate
 TRAINING_ITERATIONS = 1
-
+LEARNING_RATE = 1e-3
+# ---------
+# The brain class will handle building the neural network, sampling experiences for training and preparing and running the training process.
 # ---------
 class Brain:
+    # Memory
     train_queue = [[], [], [], [], []]  # s, a, r, s', s' terminal mask
     train_queue_copy = [[], [], [], [], []]  # s, a, r, s', s' terminal mask
     lock_queue = threading.Lock()
@@ -74,24 +77,20 @@ class Brain:
         self.num_actions= self.env.env.action_space.n
         self.none_state=np.zeros(self.num_state)
 
-
-
-
-
         self.session = tf.Session()
         K.set_session(self.session)
         K.manual_variable_initialization(True)
 
         self.model = self._build_model()
         self.graph = self._build_graph(self.model)
-        # self.tensorboard = TensorBoard(log_dir="A3C++logs{}".format(NAME))
+        self.tensorboard = TensorBoard(log_dir="A3C++logs{}".format(NAME))
         self.session.run(tf.global_variables_initializer())
         self.default_graph = tf.get_default_graph()
-
+        # We keep track of the best rewards achieved so far for each day
         self.max_reward = max_reward
         self.rewards = {}
         for i in range(self.env.env.day0, self.env.env.dayn):
-            self.rewards[i]=-100.0
+            self.rewards[i] = self.max_reward
 
         # self.default_graph.finalize()  # avoid modifications
 
@@ -100,6 +99,7 @@ class Brain:
         l_input = Input(batch_shape=(None,self.num_state ))
         print('input shape')
         print(format(l_input.shape.as_list()))
+        # The TCLs states are fed individually to the neural network but they are simply being averaged
         l_input1 = Lambda(lambda x: x[:, 0:self.num_state - 7])(l_input)
         l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
         print(self.env.env.num_tcls)
@@ -112,7 +112,6 @@ class Brain:
         out = Dense(self.num_actions, activation='softmax')(l_dense)
         out_value = Dense(1, activation='linear')(l_dense)
         model = Model(inputs=l_input, outputs=[out, out_value])
-        # model = Model(inputs=l_input, outputs=[out_tcl_actions,out_price_actions,out_deficiency_actions,out_excess_actions, out_value])
         model._make_predict_function()  # have to initialize before threading
         return model
 
@@ -132,7 +131,7 @@ class Brain:
         return s_t, a_t, r_t, minimize, loss_total
 
     def optimize(self):
-        # self.train_queue_copy serves as a coounter of the number of observvations we have between training sessions
+        # self.train_queue_copy serves as a counter of the number of observations we make between training sessions
         if len(self.train_queue_copy[0])<self.tr_freq or len(self.train_queue_copy[0])<self.min_batch :
             time.sleep(0)  # yield
             return
@@ -140,12 +139,12 @@ class Brain:
         with self.lock_queue:
             if len(self.train_queue_copy[0])<self.tr_freq:  # more thread could have passed without lock
                 return  # we can't yield inside lock
+            # We take a fraction from the memory and throw away the rest, the following experiences are added on top of the sampled experiences.
+            # This sampling process makes the current memory include old and new experiences. After many sampling iterations the very old experiences will slowly fade and the newest will remain.
             self.train_queue = random.sample(np.array(self.train_queue).T.tolist(), self.min_batch)
             self.train_queue = np.array(self.train_queue).T.tolist()
             s, a, r, s_, s_mask = self.train_queue_copy
             self.train_queue_copy = [[], [], [], [], []]
-            # if len(self.train_queue[0]) >= MEMORYCAPACITY:
-            #     self.train_queue_copy = [[], [], [], [], []]
 
             s = np.vstack(s)
             a = np.vstack(a)
@@ -159,15 +158,15 @@ class Brain:
         r = r + self.gamman * v * s_mask  # set v to 0 where s_ is terminal state
 
         s_t, a_t, r_t, minimize, loss = self.graph
-        # self.new_max()
         print("Training...")
         # for _ in range(TRAINING_ITERATIONS):
+        # Uncomment the following line for tensorboard
         # writer = tf.summary.FileWriter(NAME, self.session.graph)
         self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
         print("Done...")
 
 
-
+    # pushing experiences into the memory
     def train_push(self, s, a, r, s_):
         with self.lock_queue:
             self.train_queue[0].append(s)
@@ -223,7 +222,8 @@ class Brain:
             p, v = self.model.predict(s)
             return v
 
-
+# ---------
+# The agent handles the interactions with the environment and the selection of actions, stocking and retreiving experiences from the memory.
 # ---------
 frames = 0
 
@@ -234,7 +234,7 @@ class Agent:
         self.eps_decay = eps_decay
         self.memory = []  # used for n_step return
         self.R = 0.
-        self.num_actions=num_actions
+        self.num_actions = num_actions
 
     def getEpsilon(self):
         return max(self.eps_start -  frames * self.eps_decay,self.eps_end)  # linearly interpolate
@@ -243,9 +243,9 @@ class Agent:
         global frames, brain
         if br != None:
             brain = br
-
         eps = self.getEpsilon()
         frames = frames + 1
+        # Epsilon-greedy strategy:
         if random.random() < eps:
             p = np.random.dirichlet(np.ones(self.num_actions), size=1)
         else:
@@ -256,7 +256,9 @@ class Agent:
                 print(a)
                 return list(a),p
             p = brain.predict_p(s)
+        # In the original version, the action selection follows a stochasic policy as follows:
         # a = np.random.choice(NUM_ACTIONS, p=p.reshape(NUM_ACTIONS,))
+        # We follow a deterministic policy as follow:
         a = np.argmax(p.reshape(self.num_actions,))
         return a,p
 
@@ -291,6 +293,9 @@ class Agent:
 
 # possible edge case - if an episode ends in <N steps, the computation is incorrect
 
+
+# ---------
+# The environment here is defined as a thread so that we can run the algorithm as a multi-thread process
 # ---------
 class Environment(threading.Thread):
     stop_signal = False
@@ -305,7 +310,8 @@ class Environment(threading.Thread):
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day=day)
+        s = self.env.reset_all(day=day)
+        # s = self.env.reset(day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
@@ -324,21 +330,20 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-            #     if self.render: self.env.render(name='A3C++')
                 break
         print("episode has been ran")
         print(R)
-        # REWARDS[self.env.day].append(R)
+        REWARDS[self.env.day].append(R)
         if self.render:
             return
         if R > brain.rewards[self.env.day] and  self.agent.getEpsilon()<0.1:
             print('new max found: '+str(R))
             print("-------------------------------------------------------------------------------------------------")
-            # try:
-            #     brain.model.save(MODELS_DIRECTORY+"/A3C++" + str(self.env.day) + ".h5")
-            #     print("Model saved")
-            # except:
-            #     pass
+            try:
+                brain.model.save(MODELS_DIRECTORY+"/A3C++" + str(self.env.day) + ".h5")
+                print("Model saved")
+            except:
+                pass
             brain.rewards[self.env.day] = R
 
     def run(self):
@@ -385,11 +390,6 @@ if __name__ =="__main__":
 
     brain = Brain(environment=env_test)  # brain is global in A3C
 
-    # Training
-    ###########################################################################################################
-    #
-    # brain.model.load_weights("success/A3C+++58.h5")
-
     if TRAIN:
 
         envs = [Environment(day0=DAY0, dayn=DAYN) for i in range(THREADS)]
@@ -413,49 +413,24 @@ if __name__ =="__main__":
             o.stop()
         for o in opts:
             o.join()
-        brain.model.save("A3C+++"  + ".h5")
+        # brain.model.save("A3C++"  + ".h5")
         print("Training finished")
         print('training_time:', time.time()-t0)
-        # import pickle
-        # with open("REWARDS_A3C+++f.pkl", 'wb') as f:
-        #     pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
-    # ##################################################################################################################################################
-    # # # Test
+        # Save the rewards' list for each day
+        import pickle
+        with open("REWARDS_A3C++train.pkl", 'wb') as f:
+            pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
 
-    # while True:
-        # print('Models directory:')
-        # try:
-            # MODELS_DIRECTORY= input()
-        # except NameError:
-        #     print(NameError)
-        #     break
-        # print("Day: ")
+
     try:
-        # day= int(input())
         for day in range(DAY0,DAYN):
             env_test.runEpisode(day)
         print("average reward: ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
         import pickle
-        with open("REWARDS_A3C+++f.pkl", 'wb') as f:
+        with open("REWARDS_A3C++test.pkl", 'wb') as f:
             pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
     except NameError:
         print(NameError)
-            # break
 
 
-
-    # for rew in REWARDS.values():
-    #     print(np.average(list(rew)))
-    #     pyplot.plot(list(rew))
-    # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
-    # pyplot.show()
-
-
-
-
-
-    # print(np.average([list(REWARDS[i])[-1] for i in range(11)]))
-
-    # pyplot.plot(REWARDS)
-    # pyplot.show()
 
