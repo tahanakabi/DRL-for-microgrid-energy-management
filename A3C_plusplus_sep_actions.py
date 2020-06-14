@@ -1,11 +1,17 @@
-# OpenGym CartPole-v0 with A3C on GPU
+# A3C++ a modified version of Asynchronous Advantage actor critic algorithm
+# To solve the problem of migrogrid's energy management
 # -----------------------------------
 #
-# A3C implementation with GPU optimizer threads.
+# A3C paper: https://arxiv.org/abs/1602.01783
 #
-# Made as part of blog series Let's make an A3C, available at
+# The A3C implementation is available at:
 # https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
-# author: Jaromir Janisch, 2017
+# by: Jaromir Janisch, 2017
+
+# Two variations are implemented: A memory replay and a deterministic search following argmax(pi) instead of pi as a probability distribution
+# Every action selection is made following the action with the highest probability pi
+
+# Author: Taha Nakabi
 import os
 import sys
 

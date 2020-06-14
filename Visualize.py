@@ -1,3 +1,5 @@
+# Author: Taha Nakabi
+
 from matplotlib import pyplot as plt
 import pickle
 import numpy as np

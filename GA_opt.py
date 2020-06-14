@@ -1,3 +1,5 @@
+# Author: Taha Nakabi
+
 import concurrent.futures
 import random
 import numpy as np

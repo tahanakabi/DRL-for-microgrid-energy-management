@@ -1,13 +1,13 @@
-# OpenGym CartPole-v0
-# -------------------
-#
-# This code demonstrates use a full DQN implementation
-# to solve OpenGym CartPole-v0 problem.
-#
-# Made as part of blog series Let's make a DQN, available at:
-# https://jaromiru.com/2016/09/27/lets-make-a-dqn-theory/
-#
-# author: Jaromir Janisch, 2016
+# DQN with target net a modified version of DQN algorithm
+# To solve the problem of migrogrid's energy management
+# -----------------------------------
+
+# The DQN implementation is available at:
+# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
+# by: Jaromir Janisch, 2017
+# Adapted to solve the problem of microgrid energy management
+
+# Author: Taha Nakabi
 
 import random, numpy, math, gym, sys
 from keras.models import *

@@ -1,3 +1,5 @@
+# Author: Taha Nakabi
+
 import os
 
 class Config(object):

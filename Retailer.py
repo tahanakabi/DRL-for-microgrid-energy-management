@@ -1,3 +1,5 @@
+# Author: Taha Nakabi
+
 from tcl_env_dqn_1 import *
 from matplotlib import pyplot
 DAY0=50

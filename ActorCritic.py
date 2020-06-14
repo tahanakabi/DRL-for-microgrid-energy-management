@@ -1,12 +1,6 @@
-# OpenGym CartPole-v0 with A3C on GPU
-# -----------------------------------
-#
-# A3C implementation with GPU optimizer threads.
-#
-# Made as part of blog series Let's make an A3C, available at
-# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
-#
-# author: Jaromir Janisch, 2017
+# Actor-Critic algorithm to solve the problem of microgrid's energy management
+
+# Author: Taha Nakabi
 
 import numpy as np
 import tensorflow as tf
