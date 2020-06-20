@@ -1,4 +1,4 @@
-
+# Author: Taha Nakabi
 import os
 # names=["DQN","SARSA","DoubleDQN","REINFORCE","ActorCritic","A3C_basic","PPO_basic", 'PPO', "A3C_plusplus"]
 # for script in names[:-1]:

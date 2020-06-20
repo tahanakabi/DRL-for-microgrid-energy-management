@@ -1,12 +1,13 @@
-# OpenGym CartPole-v0
-# -------------------
-#
-# This code demonstrates use of a basic Q-network (without target network)
+# DQN a modified version of DQN algorithm
+# To solve the problem of migrogrid's energy management
+# -----------------------------------
 
+# The DQN implementation is available at:
+# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
+# by: Jaromir Janisch, 2017
+# Adapted to solve the problem of microgrid energy management
 
-# --- enable this to run on GPU
-# import os
-# os.environ['THEANO_FLAGS'] = "device=gpu,floatX=float32"
+# Author: Taha Nakabi
 
 import random, numpy, math, gym
 

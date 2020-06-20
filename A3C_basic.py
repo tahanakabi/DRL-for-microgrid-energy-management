@@ -1,4 +1,3 @@
-# OpenGym CartPole-v0 with A3C on GPU
 # -----------------------------------
 #
 # A3C implementation with GPU optimizer threads.
@@ -7,6 +6,9 @@
 # https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
 #
 # author: Jaromir Janisch, 2017
+
+# Adapted for microgrid energy management
+# author: Taha Nakabi
 
 import numpy as np
 import tensorflow as tf
@@ -227,36 +229,30 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY,**kwargs):
         threading.Thread.__init__(self)
 
         self.render = render
-        self.env = MicroGridEnv()
+        self.env = MicroGridEnv(**kwargs)
         self.agent = Agent(eps_start, eps_end, eps_decay)
         self.episode_counter=0
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
+        s = self.env.reset_all(day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            # if self.render:
-            #     # brain.model.load_weights("A3C-v=006_avg5.h5")
-            #     self.env.render(name='A3C+')
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
-
-            # if done:  # terminal state
-            #     s_ = None
+            if self.render:
+                self.env.render()
             aa=np.zeros(shape=(NUM_ACTIONS,))
             aa[a]=1
             self.agent.train(s, aa, r, s_)
-
             s = s_
             R += r
             if done:
-                # if self.render: self.env.render(name='A3C+')
                 break
         print(R)
 
@@ -301,7 +297,7 @@ NUM_ACTIONS_EXCESS = 2
 NONE_STATE = np.zeros(NUM_STATE)
 EPISODE_COUNTER = 0
 brain = Brain()  # brain is global in A3C
-
+# Uncomment this for training
 # envs = [Environment() for i in range(THREADS)]
 # opts = [Optimizer() for i in range(OPTIMIZERS)]
 # import time
@@ -328,6 +324,8 @@ brain = Brain()  # brain is global in A3C
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
+
+
 brain.model.load_weights("A3C.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
