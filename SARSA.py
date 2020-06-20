@@ -1,4 +1,3 @@
-# OpenGym CartPole-v0
 # -------------------
 #
 # This code demonstrates use of a basic Q-network (without target network)
@@ -11,20 +10,18 @@
 
 
 # --- enable this to run on GPU
-# import os
-# os.environ['THEANO_FLAGS'] = "device=gpu,floatX=float32"
+import os
+os.environ['THEANO_FLAGS'] = "device=gpu,floatX=float32"
 
 import random, numpy, math, gym
-
+from keras.callbacks import TensorBoard
 # -------------------- BRAIN ---------------------------
-from keras.models import Sequential
-from keras.layers import *
 from keras.optimizers import *
 from keras.models import *
 from keras.layers import *
-from keras import backend as K
-
-
+import time
+NAME = "SARSA-{}".format(int(time.time()))
+# NAME = "SARSA"
 DAY0 = 50
 DAYN = 60
 REWARDS = {}
@@ -37,6 +34,7 @@ class Brain:
         self.actionCnt = actionCnt
 
         self.model = self._createModel()
+        self.tensorboard = TensorBoard(log_dir="logs/{}".format(NAME))
         # self.model.load_weights("cartpole-basic.h5")
 
     def _createModel(self):
@@ -54,12 +52,13 @@ class Brain:
         model = Model(inputs=l_input, outputs=out_value)
         model._make_predict_function()
         opt = RMSprop(lr=0.00025)
+
         model.compile(loss='mse', optimizer=opt)
         return model
 
 
     def train(self, x, y, epoch=1, verbose=0):
-        self.model.fit(x, y, batch_size=100, epochs=epoch, verbose=verbose)
+        self.model.fit(x, y, batch_size=100, epochs=epoch, verbose=verbose, callbacks=[self.tensorboard])
 
     def predict(self, s):
         return self.model.predict(s)
@@ -173,7 +172,7 @@ class Environment:
 
 
     def run(self, agent, day=None):
-        s = self.env.reset(day0=DAY0, dayn=DAYN, day=day)
+        s = self.env.reset(day=day)
         R = 0
         while True:
 
@@ -219,16 +218,13 @@ t0=time.time()
 for _ in range(1000):
     env.run(agent)
 print('training_time:', time.time()-t0)
-agent.brain.model.save_weights("SARSA.h5")
-with open("REWARDS_SARSA.pkl",'wb') as f:
-    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-# for rew in REWARDS.values():
-#     # print(np.average(list(rew)))
-#     pyplot.plot(list(rew))
-# pyplot.legend(["Day {}".format(i) for i in range(DAY0,DAYN)], loc = 'upper right')
-# pyplot.show()
-agent.brain.model.load_weights("SARSA.h5")
-env_test=Environment(render=True)
-for day in range(DAY0,DAYN):
-    env_test.run(agent, day=day)
-print(np.average([list(REWARDS[i])[-1] for i in range(DAY0, DAYN)]))
+# agent.brain.model.save_weights("SARSA.h5")
+# with open("REWARDS_SARSA.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# agent.brain.model.load_weights("SARSA.h5")
+# env_test = Environment(render=True)
+# for day in range(DAY0,DAYN):
+#     env_test.run(agent, day=day)
+# print(np.average([list(REWARDS[i])[-1] for i in range(DAY0, DAYN)]))
+# with open("REWARDS_SARSA.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)

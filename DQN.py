@@ -212,3 +212,5 @@ if __name__=="__main__":
     for day in range(DAY0,DAYN):
         env_test.run(agent,day=day)
     print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
+    with open("REWARDS_DQN.pkl", 'wb') as f:
+        pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)

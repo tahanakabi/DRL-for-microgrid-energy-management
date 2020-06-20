@@ -1,0 +1,38 @@
+<!--        <p>-->
+<!--            {{ form.base_load.label }}<br>-->
+<!--            {{ form.base_load(size=32) }}-->
+<!--            {% for error in form.base_load.errors %}-->
+<!--            <span style="color: red;">[{{ error }}]</span>-->
+<!--            {% endfor %}-->
+<!--        </p>-->
+
+<!--        <p>-->
+<!--            {{ form.temperatures.label }}<br>-->
+<!--            {{ form.temperatures(size=32) }}-->
+<!--            {% for error in form.temperatures.errors %}-->
+<!--            <span style="color: red;">[{{ error }}]</span>-->
+<!--            {% endfor %}-->
+<!--        </p>-->
+
+<!--        <p>-->
+<!--            {{ form.down_reg.label }}<br>-->
+<!--            {{ form.down_reg(size=32) }}-->
+<!--            {% for error in form.down_reg.errors %}-->
+<!--            <span style="color: red;">[{{ error }}]</span>-->
+<!--            {% endfor %}-->
+<!--        </p>-->
+<!--        <p>-->
+<!--            {{ form.up_reg.label }}<br>-->
+<!--            {{ form.up_reg(size=32) }}-->
+<!--            {% for error in form.up_reg.errors %}-->
+<!--            <span style="color: red;">[{{ error }}]</span>-->
+<!--            {% endfor %}-->
+<!--        </p>-->
+
+        <p>
+            {{ form.dayn.label }}<br>
+            {{ form.dayn(size=32) }}
+            {% for error in form.dayn.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>

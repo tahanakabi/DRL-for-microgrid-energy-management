@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% if title %}
+        <title>{{ title }} - Microgrid demo</title>
+    {% else %}
+        <title>Welcome to Microgrid demo</title>
+    {% endif %}
+
+</head>
+<body>
+    <div>
+        Microgrid Demo:
+        <a href="/index">Home</a>
+        <a href="/parameters">Parameters</a>
+        <a href="/graphs">Graphs</a>
+
+</div>
+     <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    {% block content %}{% endblock %}
+</body>
+</html>

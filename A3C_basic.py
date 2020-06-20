@@ -302,36 +302,38 @@ NONE_STATE = np.zeros(NUM_STATE)
 EPISODE_COUNTER = 0
 brain = Brain()  # brain is global in A3C
 
-envs = [Environment() for i in range(THREADS)]
-opts = [Optimizer() for i in range(OPTIMIZERS)]
-import time
-t0=time.time()
-for o in opts:
-    o.start()
-for e in envs:
-    e.start()
-time.sleep(RUN_TIME)
-for e in envs:
-    e.stop()
-for e in envs:
-    e.join()
-for o in opts:
-    o.stop()
-for o in opts:
-    o.join()
-# AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
-print("Training finished")
-print('training_time:', time.time()-t0)
-with open("REWARDS_A3C_basic.pkl",'wb') as f:
-    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-brain.model.save("A3C.h5")
+# envs = [Environment() for i in range(THREADS)]
+# opts = [Optimizer() for i in range(OPTIMIZERS)]
+# import time
+# t0=time.time()
+# for o in opts:
+#     o.start()
+# for e in envs:
+#     e.start()
+# time.sleep(RUN_TIME)
+# for e in envs:
+#     e.stop()
+# for e in envs:
+#     e.join()
+# for o in opts:
+#     o.stop()
+# for o in opts:
+#     o.join()
+# print("Training finished")
+# print('training_time:', time.time()-t0)
+# with open("REWARDS_A3C_basic.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# brain.model.save("A3C.h5")
 # for rew in REWARDS.values():
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
+brain.model.load_weights("A3C.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
+with open("REWARDS_A3C_basic.pkl",'wb') as f:
+    pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 
 
 # with open("REWARDS_A3C_basic.pkl",'wb') as f:

@@ -226,24 +226,24 @@ actionCnt = env.env.action_space.n
 agent = Agent(stateCnt, actionCnt)
 randomAgent = RandomAgent(actionCnt)
 
-while randomAgent.memory.isFull() == False:
-    env.run(randomAgent)
-
-agent.memory.samples = randomAgent.memory.samples
-randomAgent = None
+# while randomAgent.memory.isFull() == False:
+#     env.run(randomAgent)
+#
+# agent.memory.samples = randomAgent.memory.samples
+# randomAgent = None
 from time import time
 import pickle
 
 
-t0= time()
-for _ in range(1000):
-    env.run(agent)
-print("Training finished")
-print("Training time: ",time()-t0)
-
-agent.brain.model.save_weights("DQNTNET.h5")
-with open("REWARDS_DQNTNET.pkl", 'wb') as f:
-    pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
+# t0= time()
+# for _ in range(1000):
+#     env.run(agent)
+# print("Training finished")
+# print("Training time: ",time()-t0)
+#
+# agent.brain.model.save_weights("DQNTNET.h5")
+# with open("REWARDS_DQNTNET.pkl", 'wb') as f:
+#     pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
 
 # for rew in REWARDS.values():
 #     # print(np.average(list(rew)))
@@ -258,3 +258,5 @@ for day in range(DAY0,DAYN):
     env_test.run(agent,day=day)
 
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
+with open("REWARDS_DQNTNET.pkl", 'wb') as f:
+    pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
