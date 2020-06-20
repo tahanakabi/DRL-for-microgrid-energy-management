@@ -73,9 +73,12 @@ def next_graphs():
 def previous_graphs():
     print('previous graphs')
     form = NextDayForm(request.form)
-    day = enviro.env.day - 1
+
     if form.validate_on_submit() and request.method == "POST" and form.previous_day.data:
         return redirect(url_for('previous_graphs'))
+    if form.validate_on_submit() and request.method == "POST" and form.next_day.data:
+        return redirect(url_for('next_graphs'))
+    day = enviro.env.day - 1
     enviro.env.reset_all(day)
     enviro.runEpisode(day)
     print(enviro.env.day)

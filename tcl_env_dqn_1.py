@@ -37,7 +37,7 @@ DEFAULT_AVGTCLPOWER = 1.5
 DEFAULT_TEMPERATURS = np.genfromtxt("temperatures.csv",usecols=[5],skip_header=1,delimiter=',')
 DEFAULT_TCL_SALE_PRICE = 3.2
 DEFAULT_TCL_TMIN = 19
-DEFAULT_TCL_TMAX = 25
+DEFAULT_TCL_TMAX = 24
 # Price responsive loads
 DEFAULT_NUM_LOADS = 150
 DEFAULT_BASE_LOAD = np.array(
@@ -94,14 +94,14 @@ class TCL:
         # control TCL using u with respect to the backup controller
         if self.T < self.Tmin:
             self.u = 1
-        elif self.Tmin < self.T < self.Tmax:
+        elif self.Tmin <= self.T < self.Tmax:
             self.u = ui
         else:
             self.u = 0
 
     def update_state(self, T0):
         # update the indoor and mass temperatures according to (22)
-        for _ in range(2):
+        for _ in range(1):
             self.T += self.ca * (T0 - self.T) + self.cm * (self.Tm - self.T) + self.P * self.u + self.q
             self.Tm += self.cm * (self.T - self.Tm)
             if self.T >= self.Tmax:
@@ -279,7 +279,7 @@ class MicroGridEnv(gym.Env):
                 """
         # Hardcoded initialization values to create
         # bunch of different TCLs
-        ca = random.normalvariate(0.004, 0.0008)
+        ca = random.normalvariate(0.01, 0.003)
         cm = random.normalvariate(0.3, 0.004)
         q = random.normalvariate(0, 0.01)
         P = random.normalvariate(self.avg_tcl_power, 0.01)
@@ -322,7 +322,7 @@ class MicroGridEnv(gym.Env):
         # We need to standardize the generation and the price
         # Minimum soc is -1
         socs = (socs+np.ones(shape=socs.shape))/2
-        loads = self.typical_load[(self.time_step) % self.iterations]
+        loads = self.typical_load[(self.time_step) % 24]
         loads = (loads - min(self.typical_load)) / (max(self.typical_load) - min(self.typical_load))
 
         current_generation = self.generation.current_generation(self.day*self.iterations+self.time_step)
@@ -405,7 +405,7 @@ class MicroGridEnv(gym.Env):
         reward-= available_energy * self.power_cost / 100
         # We implement the pricing action and we calculate the total load in response to the price
         for load in self.loads:
-            load.react(price_tier=price_action, time_day=self.time_step)
+            load.react(price_tier=price_action, time_day=self.time_step%24)
 
         total_loads = sum([l.load() for l in self.loads])
         # print("Total loads",total_loads)
@@ -476,7 +476,7 @@ class MicroGridEnv(gym.Env):
         Note: Overrides previous TCLs
         """
         if day == None:
-            self.day= self.day0
+            self.day= random.randint(self.day0,self.dayn)
         else:
             self.day = day
         print("Day:", self.day)

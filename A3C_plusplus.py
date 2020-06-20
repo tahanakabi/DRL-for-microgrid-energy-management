@@ -29,12 +29,12 @@ import os
 
 
 # This is where the models are saved and retrieved from
-MODELS_DIRECTORY = 'success10'
+MODELS_DIRECTORY = 'success100'
 # For tensor board
 NAME= "A3C++logs/A3C++{}".format(int(time.time()))
 # -- constants
 # Threading parameters
-RUN_TIME = 700
+RUN_TIME = 2000
 THREADS = 16
 OPTIMIZERS = 2
 THREAD_DELAY = 0.000001
@@ -310,8 +310,8 @@ class Environment(threading.Thread):
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset_all(day=day)
-        # s = self.env.reset(day=day)
+        # s = self.env.reset_all(day=day)
+        s = self.env.reset(day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
@@ -333,7 +333,6 @@ class Environment(threading.Thread):
                 break
         print("episode has been ran")
         print(R)
-        REWARDS[self.env.day].append(R)
         if self.render:
             return
         if R > brain.rewards[self.env.day] and  self.agent.getEpsilon()<0.1:
@@ -376,8 +375,8 @@ if __name__ =="__main__":
     if str(sys.argv[1]) == 'train':
         TRAIN = True
 
-    DAY0 = 1
-    DAYN = 2
+    DAY0 = 0
+    DAYN = 101
 
     REWARDS = {}
     for i in range(DAY0,DAYN):
