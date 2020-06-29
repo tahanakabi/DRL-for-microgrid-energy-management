@@ -1,0 +1,948 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   width="601px"
+   height="281px"
+   viewBox="-0.5 -0.5 601 281"
+   content="&lt;mxfile host=&quot;www.draw.io&quot; modified=&quot;2019-11-13T10:58:58.704Z&quot; agent=&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36&quot; etag=&quot;Ph1M_dH_xRaId1js1UJo&quot; version=&quot;12.2.4&quot; type=&quot;onedrive&quot; pages=&quot;1&quot;&gt;&lt;diagram id=&quot;XdnqZ4etLIZK_W-Amd1T&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;"
+   style="background-color: rgb(255, 255, 255);"
+   id="svg2"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="TCLAggregator1.svg">
+  <metadata
+     id="metadata156">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1536"
+     inkscape:window-height="801"
+     id="namedview154"
+     showgrid="false"
+     inkscape:zoom="1.7412946"
+     inkscape:cx="304.13046"
+     inkscape:cy="134.16839"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g6" />
+  <defs
+     id="defs4">
+    <xhtml:style
+       type="text/css">
+		body { overflow:hidden; }
+		div.picker { z-index: 10007; }
+		.geSidebarContainer .geTitle input {
+			font-size:8pt;
+			color:#606060;
+		}
+		.geBlock {
+			z-index:-3;
+			margin:100px;
+			margin-top:40px;
+			margin-bottom:30px;
+			padding:20px;
+		}
+		.geBlock h1, .geBlock h2 {
+			margin-top:0px;
+			padding-top:0px;
+		}
+		.geEditor ::-webkit-scrollbar {
+		    width:14px;
+		    height:14px;
+		}
+		.geEditor ::-webkit-scrollbar-track {
+			background-clip:padding-box;
+			border:solid transparent;
+			border-width:1px;
+		}
+		.geEditor ::-webkit-scrollbar-corner {
+			background-color:transparent;
+		}
+		.geEditor ::-webkit-scrollbar-thumb {
+			background-color:rgba(0,0,0,.1);
+			background-clip:padding-box;
+			border:solid transparent;
+			border-radius:10px;
+		}
+		.geEditor ::-webkit-scrollbar-thumb:hover{
+			background-color:rgba(0,0,0,.4);
+		}
+		.geTemplate {
+			border:1px solid transparent;
+			display:inline-block;
+			_display:inline;
+			vertical-align:top;
+			border-radius:3px;
+			overflow:hidden;
+			font-size:14pt;
+			cursor:pointer;
+			margin:5px;
+		}
+		.geFooterContainer div.geSocialFooter a {
+			display:inline;
+			padding:0px;
+		}
+		.geFooterContainer div.geSocialFooter a img {
+			margin-top:10px;
+			opacity:0.5;
+		}
+		.geFooterContainer div.geSocialFooter a img:hover {
+			opacity:1;
+		}
+		.geFooterContainer&gt;div#geFooter&gt;img {
+			opacity:0.5;
+			border:1px solid transparent;
+			cursor:pointer;
+			margin-top:3px;
+			margin-right:6px;
+			position:absolute;
+			right:4px;
+			top:12px;
+			padding:1px;
+			cursor:pointer;
+		}
+		.geFooterContainer&gt;div#geFooter&gt;img:hover {
+			opacity: 1;
+		}
+	</xhtml:style>
+    <xhtml:style
+       type="text/css" />
+    <xhtml:style
+       type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</xhtml:style>
+    <xhtml:style
+       type="text/css">  @-webkit-keyframes rotate {
+    from  { -webkit-transform: rotate(0deg); }
+    to   { -webkit-transform: rotate(360deg); }
+  }
+
+  @keyframes rotate {
+    from  { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+    .dropbox-dropin-btn, .dropbox-dropin-btn:link, .dropbox-dropin-btn:hover {
+      display: inline-block;
+      height: 14px;
+      font-family: &quot;Lucida Grande&quot;, &quot;Segoe UI&quot;, &quot;Tahoma&quot;, &quot;Helvetica Neue&quot;, &quot;Helvetica&quot;, sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #636363;
+      text-decoration: none;
+      padding: 1px 7px 5px 3px;
+      border: 1px solid #ebebeb;
+      border-radius: 2px;
+      border-bottom-color: #d4d4d4;
+        background: #fcfcfc;
+  background: -moz-linear-gradient(top, #fcfcfc 0%, #f5f5f5 100%);
+  background: -webkit-linear-gradient(top, #fcfcfc 0%, #f5f5f5 100%);
+  background: linear-gradient(to bottom, #fcfcfc 0%, #f5f5f5 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fcfcfc', endColorstr='#f5f5f5',GradientType=0);  
+    }
+
+    .dropbox-dropin-default:hover, .dropbox-dropin-error:hover {
+      border-color: #dedede;
+      border-bottom-color: #cacaca;
+        background: #fdfdfd;
+  background: -moz-linear-gradient(top, #fdfdfd 0%, #f5f5f5 100%);
+  background: -webkit-linear-gradient(top, #fdfdfd 0%, #f5f5f5 100%);
+  background: linear-gradient(to bottom, #fdfdfd 0%, #f5f5f5 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fdfdfd', endColorstr='#f5f5f5',GradientType=0);  
+    }
+
+    .dropbox-dropin-default:active, .dropbox-dropin-error:active {
+      border-color: #d1d1d1;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    .dropbox-dropin-btn .dropin-btn-status {
+      display: inline-block;
+      width: 15px;
+      height: 14px;
+      vertical-align: bottom;
+      margin: 0 5px 0 2px;
+      background: transparent url('https://www.dropbox.com/static/images/widgets/dbx-saver-status.png') no-repeat;
+      position: relative;
+      top: 2px;
+    }
+
+    .dropbox-dropin-default .dropin-btn-status {
+      background-position: 0px 0px;
+    }
+
+    .dropbox-dropin-progress .dropin-btn-status {
+      width: 18px;
+      margin: 0 4px 0 0;
+      background: url('https://www.dropbox.com/static/images/widgets/dbx-progress.png') no-repeat center center;
+        -webkit-animation-name: rotate;
+        -webkit-animation-duration: 1.7s;
+        -webkit-animation-iteration-count: infinite;
+        -webkit-animation-timing-function: linear;
+      animation-name: rotate;
+      animation-duration: 1.7s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    .dropbox-dropin-success .dropin-btn-status {
+      background-position: -15px 0px;
+    }
+
+    .dropbox-dropin-disabled {
+      background: #e0e0e0;
+      border: 1px #dadada solid;
+      border-bottom: 1px solid #ccc;
+      box-shadow: none;
+    }
+
+    .dropbox-dropin-disabled .dropin-btn-status {
+      background-position: -30px 0px;
+    }
+
+    .dropbox-dropin-error .dropin-btn-status {
+      background-position: -45px 0px;
+    }
+
+  @media only screen and (-webkit-min-device-pixel-ratio: 1.4) {
+      .dropbox-dropin-btn .dropin-btn-status {
+        background-image: url('https://www.dropbox.com/static/images/widgets/dbx-saver-status-2x.png');
+        background-size: 60px 14px;
+          -webkit-background-size: 60px 14px;
+      }
+
+      .dropbox-dropin-progress .dropin-btn-status {
+        background: url('https://www.dropbox.com/static/images/widgets/dbx-progress-2x.png') no-repeat center center;
+        background-size: 20px 20px;
+          -webkit-background-size: 20px 20px;
+      }
+  }
+
+    .dropbox-saver:hover, .dropbox-chooser:hover {
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .dropbox-chooser, .dropbox-dropin-btn {
+      line-height: 11px !important;
+      text-decoration: none !important;
+      box-sizing: content-box !important;
+        -webkit-box-sizing: content-box !important;
+        -moz-box-sizing: content-box !important;
+    }
+    </xhtml:style>
+    <xhtml:style
+       type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: &quot; &quot;}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom &gt; * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd &gt; * {display: block!important}
+.MJXp-script-box &gt; *  {display: table!important; height: 50%}
+.MJXp-script-box &gt; * &gt; * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box &gt; *:last-child &gt; * {vertical-align: bottom}
+.MJXp-script-box &gt; * &gt; * &gt; * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover, .MJXp-munder {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over &gt; * {display: block!important}
+.MJXp-munderover &gt; *, .MJXp-munder &gt; * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable &gt; * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr &gt; .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child &gt; .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr &gt; .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child &gt; .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</xhtml:style>
+  </defs>
+  <g
+     id="g6">
+    <path
+       d="M 130 130 L 233.63 130"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path8" />
+    <path
+       d="M 238.88 130 L 231.88 133.5 L 233.63 130 L 231.88 126.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path10" />
+    <rect
+       x="20.384861"
+       y="89.136307"
+       width="109.56741"
+       height="78.855972"
+       rx="8.217556"
+       ry="11.828397"
+       pointer-events="all"
+       id="rect12"
+       style="fill:#a0c5ea;fill-opacity:1;stroke:#9673a6;stroke-width:1.09544802" />
+    <g
+       transform="translate(9.9742977,98.380015)"
+       id="g14">
+      <flowRoot
+         xml:space="preserve"
+         id="flowRoot3484"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.5px;line-height:125%;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         transform="translate(-30.574285,-114.38572)"><flowRegion
+           id="flowRegion3486"><rect
+             id="rect3488"
+             width="146.44278"
+             height="91.311371"
+             x="20.099989"
+             y="110.43724"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" /></flowRegion><flowPara
+           id="flowPara3490"
+           style="font-weight:normal;font-size:27.5px">Control Agent</flowPara></flowRoot>    </g>
+    <path
+       d="M 360 130 L 450 130 L 450 47 L 516.63 47"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path20" />
+    <path
+       d="M 521.88 47 L 514.88 50.5 L 516.63 47 L 514.88 43.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path22" />
+    <path
+       d="M 360 130 L 450 130 L 450 90 L 516.63 90"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path24" />
+    <path
+       d="M 521.88 90 L 514.88 93.5 L 516.63 90 L 514.88 86.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path26" />
+    <path
+       d="M 360 130 L 450 130 L 450 110 L 516.63 110"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path28" />
+    <path
+       d="M 521.88 110 L 514.88 113.5 L 516.63 110 L 514.88 106.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path30" />
+    <path
+       d="M 360 130 L 441 130 L 441 129 L 517.63 129"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path32" />
+    <path
+       d="M 522.88 129 L 515.88 132.5 L 517.63 129 L 515.88 125.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path34" />
+    <path
+       d="M 360 130 L 450 130 L 450 160 L 516.63 160"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path36" />
+    <path
+       d="M 521.88 160 L 514.88 163.5 L 516.63 160 L 514.88 156.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path38" />
+    <path
+       d="M 360 130 L 450 130 L 450 183 L 516.63 183"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path40" />
+    <path
+       d="M 521.88 183 L 514.88 186.5 L 516.63 183 L 514.88 179.5 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path42" />
+    <path
+       d="M 360 130 L 450 130 L 450 224 L 523 224 L 523 227.37"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="stroke"
+       id="path44" />
+    <path
+       d="m 526.5,223.62 -7,3.5 1.75,-3.5 -1.75,-3.5 z"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path46"
+       inkscape:connector-curvature="0"
+       style="fill:#000000;stroke:#000000;stroke-miterlimit:10" />
+    <path
+       d="M 239 120 L 136.37 120"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path48" />
+    <path
+       d="M 131.12 120 L 138.12 116.5 L 136.37 120 L 138.12 123.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path50" />
+    <rect
+       x="236.77992"
+       y="88.165642"
+       width="122.99444"
+       height="123.2944"
+       rx="9.2245827"
+       ry="18.49416"
+       pointer-events="all"
+       id="rect52"
+       style="fill:#e1d5e7;fill-opacity:1;stroke:#6c8ebf;stroke-width:1.45126987" />
+    <g
+       transform="translate(257.5,123.5)"
+       id="g54">
+      <switch
+         id="switch56">
+        <foreignObject
+           style="overflow:visible;"
+           pointer-events="all"
+           width="84"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 86px; white-space: nowrap; overflow-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;white-space:normal;">TCL Aggregator</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="42"
+           y="12"
+           font-size="12px"
+           id="text58"
+           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000">
+          <tspan
+             style="font-size:27.5px"
+             id="tspan4229" />
+        </text>
+      </switch>
+    </g>
+    <path
+       d="M 523 50 L 440 50 L 440 124 L 366.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path60" />
+    <path
+       d="M 361.12 124 L 368.12 120.5 L 366.37 124 L 368.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path62" />
+    <ellipse
+       cx="553"
+       cy="50"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse64" />
+    <g
+       transform="translate(532.5,42.5)"
+       id="g66" />
+    <path
+       d="M 523 83 L 440 83 L 440 124 L 365.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path72" />
+    <path
+       d="M 360.12 124 L 367.12 120.5 L 365.37 124 L 367.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path74" />
+    <ellipse
+       cx="553"
+       cy="90"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse76" />
+    <path
+       d="M 523 104 L 440 104 L 440 124 L 366.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path78" />
+    <path
+       d="M 361.12 124 L 368.12 120.5 L 366.37 124 L 368.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path80" />
+    <ellipse
+       cx="553"
+       cy="110"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse82" />
+    <path
+       d="M 523 134 L 440 134 L 440 124 L 365.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path84" />
+    <path
+       d="M 360.12 124 L 367.12 120.5 L 365.37 124 L 367.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path86" />
+    <ellipse
+       cx="553"
+       cy="134"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse88" />
+    <path
+       d="M 521 154 L 440 154 L 440 123 L 366.37 123"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path90" />
+    <path
+       d="M 361.12 123 L 368.12 119.5 L 366.37 123 L 368.12 126.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path92" />
+    <ellipse
+       cx="553"
+       cy="160"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse94" />
+    <path
+       d="M 523 178 L 440 178 L 440 124 L 366.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path96" />
+    <path
+       d="M 361.12 124 L 368.12 120.5 L 366.37 124 L 368.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path98" />
+    <ellipse
+       cx="553"
+       cy="183"
+       rx="30"
+       ry="30"
+       fill="#f5f5f5"
+       stroke="#666666"
+       pointer-events="all"
+       id="ellipse100" />
+    <path
+       d="M 523 212 L 523 215 L 440 215 L 440 124 L 367.37 124"
+       fill="none"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       stroke-dasharray="3 3"
+       pointer-events="stroke"
+       id="path108" />
+    <path
+       d="M 362.12 124 L 369.12 120.5 L 367.37 124 L 369.12 127.5 Z"
+       fill="#001dbc"
+       stroke="#001dbc"
+       stroke-miterlimit="10"
+       pointer-events="all"
+       id="path110" />
+    <circle
+       cx="555.02002"
+       cy="219"
+       pointer-events="all"
+       id="ellipse112"
+       r="30"
+       style="fill:#f5f5f5;stroke:#666666" />
+    <rect
+       x="140"
+       y="130"
+       width="100"
+       height="20"
+       fill="none"
+       stroke="none"
+       pointer-events="all"
+       id="rect120" />
+    <g
+       transform="translate(141.5,132.5)"
+       id="g122">
+      <switch
+         id="switch124">
+        <foreignObject
+           style="overflow:visible;"
+           pointer-events="all"
+           width="89"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; white-space: nowrap; text-align: left;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Energy allocated</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="45"
+           y="12"
+           font-size="12px"
+           id="text126"
+           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000">
+          <tspan
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '"
+             id="tspan4332" />
+        </text>
+      </switch>
+    </g>
+    <rect
+       x="360"
+       y="134"
+       width="90"
+       height="20"
+       fill="none"
+       stroke="none"
+       pointer-events="all"
+       id="rect128" />
+    <rect
+       x="150"
+       y="100"
+       width="80"
+       height="20"
+       fill="none"
+       stroke="none"
+       pointer-events="all"
+       id="rect136" />
+    <rect
+       x="360"
+       y="100"
+       width="80"
+       height="20"
+       fill="none"
+       stroke="none"
+       pointer-events="all"
+       id="rect144" />
+    <g
+       transform="translate(361.5,102.5)"
+       id="g146">
+      <switch
+         id="switch148">
+        <foreignObject
+           style="overflow:visible;"
+           pointer-events="all"
+           width="69"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; white-space: nowrap; text-align: left;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">
+              <xhtml:font
+                 color="#3333ff"
+                 style="font-size: 10px">Individual SoCs</xhtml:font>
+            </xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="35"
+           y="12"
+           font-size="12px"
+           id="text150"
+           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000" />
+      </switch>
+    </g>
+    <rect
+       x="0"
+       y="0"
+       width="600"
+       height="280"
+       fill="none"
+       stroke="#000000"
+       pointer-events="all"
+       id="rect152" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4316"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:sans-serif;font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;text-align:center"><flowRegion
+         id="flowRegion4318"><rect
+           id="rect4320"
+           width="85.56852"
+           height="17.228561"
+           x="364.09692"
+           y="134.55724" /></flowRegion><flowPara
+         id="flowPara4322" /></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4324"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.5px;line-height:125%;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="translate(-3.9457122,-4.5199975)"><flowRegion
+         id="flowRegion4326"><rect
+           id="rect4328"
+           width="87.865662"
+           height="97.05423"
+           x="358.92834"
+           y="132.83438"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" /></flowRegion><flowPara
+         id="flowPara4330"
+         style="font-size:25px">Control actions</flowPara></flowRoot>    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="553.38824"
+       y="47.894424"
+       id="text4334"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4336"
+         x="553.38824"
+         y="47.894424">TCL N</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="554.5368"
+       y="185.44577"
+       id="text4338"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4340"
+         x="554.5368"
+         y="185.44577">TCL 2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="556.2597"
+       y="223.09146"
+       id="text4342"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4344"
+         x="556.2597"
+         y="223.09146">TCL 1</tspan></text>
+  </g>
+  <flowRoot
+     xml:space="preserve"
+     id="flowRoot3492"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.5px;line-height:125%;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(-2.2228561,-47.5914)"><flowRegion
+       id="flowRegion3494"><rect
+         id="rect3496"
+         width="102.22279"
+         height="72.934242"
+         x="140.12563"
+         y="101.82296"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" /></flowRegion><flowPara
+       id="flowPara3498"
+       style="font-size:27.5px;fill:#0000ff">Average SoC</flowPara></flowRoot>  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4300"
+     style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:sans-serif;font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;text-align:center"><flowRegion
+       id="flowRegion4302"><rect
+         id="rect4304"
+         width="70.6371"
+         height="20.674273"
+         x="365.24548"
+         y="100.67439" /></flowRegion><flowPara
+       id="flowPara4306" /></flowRoot>  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4308"
+     style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(-38.402834,-44.145687)"><flowRegion
+       id="flowRegion4310"><rect
+         id="rect4312"
+         width="128.06563"
+         height="94.757088"
+         x="361.79977"
+         y="104.69439" /></flowRegion><flowPara
+       id="flowPara4314"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:25px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';fill:#0000ff">Individual SoCs</flowPara></flowRoot>  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4221"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:17.5px;line-height:125%;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(-24.0457,-7.3914243)"><flowRegion
+       id="flowRegion4223"><rect
+         id="rect4225"
+         width="141.2742"
+         height="130.36278"
+         x="138.40277"
+         y="133.40866"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" /></flowRegion><flowPara
+       id="flowPara4227"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:27.5px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">Energy allocated</flowPara></flowRoot>  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4239"
+     style="font-style:normal;font-weight:normal;font-size:17.5px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="translate(-28.639983,8.6885658)"><flowRegion
+       id="flowRegion4241"><rect
+         id="rect4243"
+         width="146.44276"
+         height="182.62274"
+         x="257.27985"
+         y="81.148697" /></flowRegion><flowPara
+       id="flowPara4245"
+       style="font-size:27.5px">TCL Aggre-gator</flowPara></flowRoot></svg>
