@@ -29,23 +29,23 @@ import os
 
 
 # This is where the models are saved and retrieved from
-MODELS_DIRECTORY = 'success10'
+MODELS_DIRECTORY = 'success01'
 # For tensor board
 NAME= "A3C++logs/A3C++{}".format(int(time.time()))
 # -- constants
 # Threading parameters
-RUN_TIME = 700
+RUN_TIME = 5000
 THREADS = 16
 OPTIMIZERS = 2
 THREAD_DELAY = 0.000001
 # Reinforcement learning parameters
-N_STEP_RETURN = 24
+N_STEP_RETURN = 15
 GAMMA = 1.0
 GAMMA_N = GAMMA ** N_STEP_RETURN
 # Epsilon greedy strategy parameters
 EPS_START = .5
 EPS_STOP = .001
-EPS_DECAY = 5e-5
+EPS_DECAY = 5e-6
 # Memory replay parameters
 MIN_BATCH = 200
 TR_FREQ = 100
@@ -74,18 +74,18 @@ class Brain:
         self.gamman = kwargs.get('gamma_n', GAMMA_N)
         self.models_directory = kwargs.get('models_directory', MODELS_DIRECTORY)
         self.num_state = self.env.env.observation_space.shape[0]
+        self.num_tcl =self.env.env.num_tcls
         self.num_actions= self.env.env.action_space.n
         self.none_state=np.zeros(self.num_state)
-
-        self.session = tf.Session()
-        K.set_session(self.session)
+        tf.compat.v1.disable_eager_execution()
+        # self.session = tf.compat.v1.Session()
+        # K.set_session(self.session)
         K.manual_variable_initialization(True)
 
-        self.model = self._build_model()
+        self.model = self._build_model(num_state=self.num_state, num_tcls=self.num_tcl)
         self.graph = self._build_graph(self.model)
-        self.tensorboard = TensorBoard(log_dir="A3C++logs{}".format(NAME))
-        self.session.run(tf.global_variables_initializer())
-        self.default_graph = tf.get_default_graph()
+        # self.session.run(tf.compat.v1.global_variables_initializer())
+        # self.default_graph = tf.compat.v1.get_default_graph()
         # We keep track of the best rewards achieved so far for each day
         self.max_reward = max_reward
         self.rewards = {}
@@ -94,17 +94,17 @@ class Brain:
 
         # self.default_graph.finalize()  # avoid modifications
 
-    def _build_model(self):
+    def _build_model(self, num_state, num_tcls):
 
-        l_input = Input(batch_shape=(None,self.num_state ))
+        l_input = Input(batch_shape=(None,num_state))
         print('input shape')
         print(format(l_input.shape.as_list()))
         # The TCLs states are fed individually to the neural network but they are simply being averaged
-        l_input1 = Lambda(lambda x: x[:, 0:self.num_state - 7])(l_input)
-        l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
+        l_input1 = Lambda(lambda x: x[:, 0:num_tcls])(l_input)
+        l_input2 = Lambda(lambda x: x[:, num_tcls:])(l_input)
         print(self.env.env.num_tcls)
-        l_input1 = Reshape((self.env.env.num_tcls, 1))(l_input1)
-        l_Pool = AveragePooling1D(pool_size=self.num_state - 7)(l_input1)
+        l_input1 = Reshape((num_tcls, 1))(l_input1)
+        l_Pool = AveragePooling1D(pool_size=num_tcls)(l_input1)
         l_Pool = Reshape([1])(l_Pool)
         l_dense = Concatenate()([l_Pool, l_input2])
         l_dense = Dense(100, activation='relu')(l_dense)
@@ -116,17 +116,17 @@ class Brain:
         return model
 
     def _build_graph(self, model):
-        s_t = tf.placeholder(tf.float32, shape=(None, self.num_state))
-        a_t = tf.placeholder(tf.float32, shape=(None, self.num_actions))
-        r_t = tf.placeholder(tf.float32, shape=(None, 1))  # not immediate, but discounted n step reward
+        s_t = tf.compat.v1.placeholder(tf.float32, shape=(None, self.num_state))
+        a_t = tf.compat.v1.placeholder(tf.float32, shape=(None, self.num_actions))
+        r_t = tf.compat.v1.placeholder(tf.float32, shape=(None, 1))  # not immediate, but discounted n step reward
         p, v = model(s_t)
-        log_prob = tf.log(tf.reduce_sum(p * a_t, axis=1, keepdims=True) + 1e-10)
+        log_prob = tf.math.log(tf.reduce_sum(input_tensor=p * a_t, axis=1, keepdims=True) + 1e-10)
         advantage = r_t - v
         loss_policy =  -log_prob * tf.stop_gradient(advantage)  # maximize policy
         loss_value = LOSS_V * tf.square(advantage)  # minimize value error
-        entropy = LOSS_ENTROPY * (tf.reduce_sum(p * tf.log(p + 1e-10), axis=1, keepdims=True))
-        loss_total = tf.reduce_mean(loss_policy + loss_value + entropy)
-        optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
+        entropy = LOSS_ENTROPY * (tf.reduce_sum(input_tensor=p * tf.math.log(p + 1e-10), axis=1, keepdims=True))
+        loss_total = tf.reduce_mean(input_tensor=loss_policy + loss_value + entropy)
+        optimizer = tf.compat.v1.train.RMSPropOptimizer(self.learning_rate)
         minimize = optimizer.minimize(loss_total)
         return s_t, a_t, r_t, minimize, loss_total
 
@@ -160,9 +160,8 @@ class Brain:
         s_t, a_t, r_t, minimize, loss = self.graph
         print("Training...")
         # for _ in range(TRAINING_ITERATIONS):
-        # Uncomment the following line for tensorboard
-        # writer = tf.summary.FileWriter(NAME, self.session.graph)
-        self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
+        minimize(s,a,r)
+        # self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
         print("Done...")
 
 
@@ -191,36 +190,42 @@ class Brain:
                 self.train_queue_copy[4].append(1.)
 
     def predict(self, s):
-        with self.default_graph.as_default():
-            p, v = self.model.predict(s)
-            return p, v
+        # with self.default_graph.as_default():
+        p, v = self.model.predict(s)
+        return p, v
 
     def predict_p(self, s):
-        with self.default_graph.as_default():
-            p, v = self.model.predict(s)
-            return p
+        # with self.default_graph.as_default():
+        p, v = self.model.predict(s)
+        return p
 
     def predict_p_vote(self, s):
         # Boost learning. Several versions of the successfull models are voting for the best action
         votes=[]
+        # print('retreiving models from {}'.format(self.models_directory))
         for filename in os.listdir(self.models_directory):
             if filename.endswith(".h5"):
-                with self.default_graph.as_default():
-                    try:
-                        self.model.load_weights(self.models_directory+"/"+filename)
-                        p = self.model.predict(s)[0][0]
-                        votes.append(ACTIONS[np.argmax(p)])
-                    except :
-                        print(filename+"didn't vote!")
-                        print(sys.exc_info()[0])
-                        pass
+                # print(filename)
+                # with self.default_graph.as_default():
+                try:
+                    # print('trying to load weights')
+                    self.model.load_weights(self.models_directory+"/"+filename)
+                    # print('weights loaded')
+                    p = self.model.predict(s)[0][0]
+                    # print('probability predicted')
+                    # votes.append(p)
+                    votes.append(ACTIONS[np.argmax(p)])
+                except :
+                    print(filename+"didn't vote!")
+                    pass
         boosted_p = np.average(np.array(votes),axis=0)
-        return np.rint(boosted_p).astype(int)
+        return  np.rint(boosted_p).astype(int)
+        # return ACTIONS[np.argmax(boosted_p)]
 
     def predict_v(self, s):
-        with self.default_graph.as_default():
-            p, v = self.model.predict(s)
-            return v
+        # with self.default_graph.as_default():
+        p, v = self.model.predict(s)
+        return v
 
 # ---------
 # The agent handles the interactions with the environment and the selection of actions, stocking and retreiving experiences from the memory.
@@ -251,6 +256,7 @@ class Agent:
         else:
             s = np.array([s])
             if render:
+                print('starting the vote')
                 a = brain.predict_p_vote(s)
                 p= np.random.dirichlet(np.ones(self.num_actions), size=1)
                 print(a)
@@ -306,19 +312,26 @@ class Environment(threading.Thread):
         self.render = render
         self.env = MicroGridEnv(**kwargs)
         self.agent = Agent(eps_start, eps_end, eps_decay,num_actions=self.env.action_space.n)
-        self.brain=None
+        self.brain = None
 
 
-    def runEpisode(self,day=None):
-        s = self.env.reset_all(day=day)
-        # s = self.env.reset(day=day)
+    def runEpisode(self,day=None, pplt=True, web = False):
+        # print('resetting the environment')
+        if web==False:
+            s = self.env.reset_all(day=day)
+        else:
+            s = self.env.reset(day=day)
         R = 0
         while True:
             time.sleep(THREAD_DELAY)  # yield
+            # print('Acting')
             a, p = self.agent.act(s,self.render, self.brain)
+            # print('stepping')
             s_, r, done, _ = self.env.step(a)
+            R += r
+            # print('rendering')
             if self.render:
-                self.env.render(name='A3C++')
+                self.env.render(R)
 
             if done:  # terminal state
                 s_ = None
@@ -328,18 +341,22 @@ class Environment(threading.Thread):
                 aa[a] = 1
                 self.agent.train(s, aa, r, s_)
             s = s_
-            R += r
+
             if done:
                 break
         print("episode has been ran")
         print(R)
-        REWARDS[self.env.day].append(R)
+        if web==False:
+            REWARDS[self.env.day].append(R)
+
         if self.render:
-            return
-        if R > brain.rewards[self.env.day] and  self.agent.getEpsilon()<0.1:
+            return R
+        if R > brain.rewards[self.env.day] and  self.agent.getEpsilon()<0.2:
             print('new max found: '+str(R))
             print("-------------------------------------------------------------------------------------------------")
             try:
+                # Uncomment the following line for tensorboard
+                writer = tf.compat.v1.summary.FileWriter(NAME, brain.session.graph)
                 brain.model.save(MODELS_DIRECTORY+"/A3C++" + str(self.env.day) + ".h5")
                 print("Model saved")
             except:
@@ -369,21 +386,22 @@ class Optimizer(threading.Thread):
         self.stop_signal = True
 
 
-# -- main
+
+
 if __name__ =="__main__":
     import sys
     TRAIN=False
     if str(sys.argv[1]) == 'train':
         TRAIN = True
 
-    DAY0 = 1
-    DAYN = 2
+    DAY0 = 0
+    DAYN = 10
 
     REWARDS = {}
     for i in range(DAY0,DAYN):
         REWARDS[i]=[]
 
-    env_test = Environment(render=True, eps_start=0., eps_end=0., day0=DAY0, dayn=DAYN)
+    env_test = Environment(render=True, eps_start=0., eps_end=0., day0=DAY0, dayn=DAYN, iterations=100)
     NUM_STATE = env_test.env.observation_space.shape[0]
     NUM_ACTIONS = env_test.env.action_space.n
     NONE_STATE = np.zeros(NUM_STATE)
@@ -413,7 +431,7 @@ if __name__ =="__main__":
             o.stop()
         for o in opts:
             o.join()
-        # brain.model.save("A3C++"  + ".h5")
+        brain.model.save("success00/A3C++"  + ".h5")
         print("Training finished")
         print('training_time:', time.time()-t0)
         # Save the rewards' list for each day
@@ -427,8 +445,8 @@ if __name__ =="__main__":
             env_test.runEpisode(day)
         print("average reward: ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
         import pickle
-        with open("REWARDS_A3C++test.pkl", 'wb') as f:
-            pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
+        # with open("REWARDS_A3C++test.pkl", 'wb') as f:
+        #     pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
     except NameError:
         print(NameError)
 
