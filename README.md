@@ -4,7 +4,7 @@ This repository contains an implementation of a Deep Reinforcement Learning (DRL
 ## Installation
 Clone the repository and navigate to the directory
 Create a conda environment
-<code> conda env create -f environment.yml </code> <br>
+<code> conda env create -f conda.yaml </code> <br>
 Activate the environment
 <code> conda activate tf2-gpu </code>
 ## Usage
