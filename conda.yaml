@@ -177,4 +177,4 @@ dependencies:
     - wheel==0.36.2
     - widgetsnbextension==3.5.1
     - zipp==3.1.0
-prefix: C:\Users\abdel\anaconda3\envs\tf2-gpu
+

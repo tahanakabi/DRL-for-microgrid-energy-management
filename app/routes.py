@@ -2,9 +2,9 @@ from app import app
 from app.forms import ParamForm, NextDayForm
 from flask import render_template, flash, redirect, url_for, session
 from flask import request
-from A3C_plusplus import Environment, Brain, MODELS_DIRECTORY
-from Visualize import line_chart
-from microgrid_env_web import MicroGridEnvWeb
+from scripts.A3C_plusplus import Environment, Brain, MODELS_DIRECTORY
+from scripts.Visualize import line_chart
+from scripts.microgrid_env_web import MicroGridEnvWeb
 import numpy as np
 import pickle
 
