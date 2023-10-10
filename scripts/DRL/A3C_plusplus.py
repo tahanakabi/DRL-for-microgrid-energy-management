@@ -262,7 +262,7 @@ class Agent:
             p = brain.predict_p(s)
         # In the original version, the action selection follows a stochasic policy as follows:
         # a = np.random.choice(NUM_ACTIONS, p=p.reshape(NUM_ACTIONS,))
-        # We follow a deterministic policy as follow:
+        # We follow a deterministic policy as follows:
         a = np.argmax(p.reshape(self.num_actions,))
         return a,p
 
@@ -396,7 +396,7 @@ if __name__ =="__main__":
         pass
 
     DAY0 = 0
-    DAYN = 10
+    DAYN = 5
 
     REWARDS = {}
     for i in range(DAY0,DAYN):
