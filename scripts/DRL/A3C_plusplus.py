@@ -25,7 +25,7 @@ print("after import")
 import os
 
 
-
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 # This is where the models are saved and retrieved from
 MODELS_DIRECTORY = '../../models/A3C++models'
 # For tensor board
@@ -389,8 +389,11 @@ class Optimizer(threading.Thread):
 if __name__ =="__main__":
     import sys
     TRAIN=False
-    if str(sys.argv[1]) == 'train':
-        TRAIN = True
+    try:
+        if str(sys.argv[1]) == 'train':
+            TRAIN = True
+    except:
+        pass
 
     DAY0 = 0
     DAYN = 10
@@ -399,7 +402,7 @@ if __name__ =="__main__":
     for i in range(DAY0,DAYN):
         REWARDS[i]=[]
 
-    env_test = Environment(render=True, eps_start=0., eps_end=0., day0=DAY0, dayn=DAYN, iterations=100)
+    env_test = Environment(render=True, eps_start=0., eps_end=0., day0=DAY0, dayn=DAYN)
     NUM_STATE = env_test.env.observation_space.shape[0]
     NUM_ACTIONS = env_test.env.action_space.n
     NONE_STATE = np.zeros(NUM_STATE)
@@ -429,7 +432,7 @@ if __name__ =="__main__":
             o.stop()
         for o in opts:
             o.join()
-        brain.model.save("success00/A3C++"  + ".h5")
+        brain.model.save("../../models/A3C++"  + ".h5")
         print("Training finished")
         print('training_time:', time.time()-t0)
         # Save the rewards' list for each day
