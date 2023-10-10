@@ -1,0 +1,5 @@
+tensorflow==2.10.0
+keras==2.10.0
+gym==0.26.2
+pandas
+matplotlib
