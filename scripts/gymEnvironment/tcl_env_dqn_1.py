@@ -130,12 +130,15 @@ class Battery:
 
 
     def charge(self, E):
-        empty = self.capacity - self.RC
-        if empty <= 0:
+        empty_capacity = self.capacity - self.RC
+        if empty_capacity <= 0:
             return E
         else:
-            self.RC += self.rateC * min(E,self.chargeE)
-            leftover = self.RC - self.capacity + max(E-self.chargeE,0)
+
+            energy_received=min(E,self.chargeE)
+            charging_energy=min(self.rateC * energy_received,empty_capacity)
+            self.RC += charging_energy
+            leftover = E-charging_energy
             self.RC = min(self.capacity, self.RC)
             return max(leftover, 0)
 
@@ -523,8 +526,7 @@ class MicroGridEnv(gym.Env):
         TOTAL_CONSUMPTION_RENDER.append(self._compute_tcl_power()+np.sum([l.load() for l in self.loads]))
         TEMP_RENDER.append(self.temperatures[self.day*self.iterations+self.time_step-1])
         if self.time_step==self.iterations:
-            fig=plt.figure()
-            # ax = pyplot.axes()
+
             ax = plt.subplot(2, 1, 1)
             plt.axhspan(0, 100, facecolor='g', alpha=0.5)
 
@@ -540,8 +542,6 @@ class MicroGridEnv(gym.Env):
             plt.title("TCLs state of charge and outdoor Temperatures")
             plt.xlabel("Time (h)")
             plt.legend(["Outdoor Temperatures"], loc='lower right')
-            # plt.show()
-
             ax = plt.subplot(2, 1, 2)
             ax.set_facecolor("silver")
             ax.set_ylabel("kW")
@@ -557,95 +557,85 @@ class MicroGridEnv(gym.Env):
             plt.ylabel("kW")
             plt.show()
 
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.yaxis.grid(True)
-            # plt.plot(PRICE_RENDER,color='k')
-            # plt.title("SALE PRICES")
-            # plt.xlabel("Time (h)")
-            # plt.ylabel("€ cents")
-            # plt.show()
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.yaxis.grid(True)
+            plt.plot(PRICE_RENDER,color='k')
+            plt.title("SALE PRICES")
+            plt.xlabel("Time (h)")
+            plt.ylabel("€ cents")
+            plt.show()
             #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.set_xlabel("Time (h)")
-            # ax.yaxis.grid(True)
-            # plt.plot(np.array(BATTERY_RENDER),color='k')
-            # plt.title("ESS SOC")
-            # plt.xlabel("Time (h)")
-            # # ax4.set_ylabel("BATTERY SOC")
-            # plt.show()
-            #
-            #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.set_xlabel("Time (h)")
-            # ax.set_ylabel("kWh")
-            # ax.yaxis.grid(True)
-            # plt.plot(np.array(TOTAL_CONSUMPTION_RENDER), color='k')
-            # plt.title("Demand")
-            # plt.xlabel("Time (h)")
-            # plt.show()
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.set_xlabel("Time (h)")
+            ax.yaxis.grid(True)
+            plt.plot(np.array(BATTERY_RENDER),color='k')
+            plt.title("ESS SOC")
+            plt.xlabel("Time (h)")
+            plt.show()
             #
             #
-            #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.set_xlabel("Time (h)")
-            # ax.yaxis.grid(True)
-            # plt.plot(np.array(self.typical_load), color='k')
-            # plt.title("Expected Individual basic load (L_b)")
-            # plt.xlabel("Time (h)")
-            # plt.ylabel("kWh")
-            # plt.show()
-            #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.set_ylabel("kW")
-            # ax.set_xlabel("Time (h)")
-            # ax.yaxis.grid(True)
-            # plt.boxplot(np.array(LOADS_RENDER).T)
-            # plt.title("Hourly residential loads")
-            # plt.xlabel("Time (h)")
-            # plt.show()
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.set_xlabel("Time (h)")
+            ax.set_ylabel("kWh")
+            ax.yaxis.grid(True)
+            plt.plot(np.array(TOTAL_CONSUMPTION_RENDER), color='k')
+            plt.title("Demand")
+            plt.xlabel("Time (h)")
+            plt.show()
             #
             #
             #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.yaxis.grid(True)
-            # plt.plot(np.array(ENERGY_GENERATED_RENDER),color='k')
-            # plt.title("ENERGY GENERATED")
-            # plt.xlabel("Time (h)")
-            # plt.ylabel("kW")
-            # plt.show()
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.set_xlabel("Time (h)")
+            ax.yaxis.grid(True)
+            plt.plot(np.array(self.typical_load), color='k')
+            plt.title("Expected Individual basic load (L_b)")
+            plt.xlabel("Time (h)")
+            plt.ylabel("kWh")
+            plt.show()
             #
-            # ax = plt.axes()
-            # ax.set_facecolor("silver")
-            # ax.yaxis.grid(True)
-            # # ax.axis(ymin=0,ymax=610)
-            # ax.bar(x=np.array(np.arange(self.iterations)),height=np.array(ENERGY_SOLD_RENDER),color='navy', width=0.8)
-            # ax.bar(x=np.array(np.arange(self.iterations)),height=np.array(ENERGY_BOUGHT_RENDER),color='darkred', width=0.8)
-            # ax.set_xlabel("Time (h)")
-            # ax.set_ylabel("Energy Exchanged kWh")
-            # ax.legend(['Energy sold', 'Energy purchased'],loc='upper left')
-            # # pyplot.show()
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.set_ylabel("kW")
+            ax.set_xlabel("Time (h)")
+            ax.yaxis.grid(True)
+            plt.boxplot(np.array(LOADS_RENDER).T)
+            plt.title("Hourly residential loads")
+            plt.xlabel("Time (h)")
+            plt.show()
             #
-            # ax1=ax.twinx()
-            # ax1.plot(np.array(GRID_PRICES_BUY_RENDER),color='red')
-            # ax1.plot(np.array(GRID_PRICES_SELL_RENDER), color='green')
-            # ax1.set_ylabel("GRID PRICES € cents")
-            # ax1.legend(['Buying prices','Selling prices'],loc='upper right')
-            # plt.show()
+            #
+            #
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.yaxis.grid(True)
+            plt.plot(np.array(ENERGY_GENERATED_RENDER),color='k')
+            plt.title("ENERGY GENERATED")
+            plt.xlabel("Time (h)")
+            plt.ylabel("kW")
+            plt.show()
+            #
+            ax = plt.axes()
+            ax.set_facecolor("silver")
+            ax.yaxis.grid(True)
+            # ax.axis(ymin=0,ymax=610)
+            ax.bar(x=np.array(np.arange(self.iterations)),height=np.array(ENERGY_SOLD_RENDER),color='navy', width=0.8)
+            ax.bar(x=np.array(np.arange(self.iterations)),height=np.array(ENERGY_BOUGHT_RENDER),color='darkred', width=0.8)
+            ax.set_xlabel("Time (h)")
+            ax.set_ylabel("Energy Exchanged kWh")
+            ax.legend(['Energy sold', 'Energy purchased'],loc='upper left')
 
+            ax1=ax.twinx()
+            ax1.plot(np.array(GRID_PRICES_BUY_RENDER),color='red')
+            ax1.plot(np.array(GRID_PRICES_SELL_RENDER), color='green')
+            ax1.set_ylabel("GRID PRICES € cents")
+            ax1.legend(['Buying prices','Selling prices'],loc='upper right')
+            plt.show()
 
-
-
-
-
-            # np.save(name + 'Cost' + str(self.day) + '.npy', self.grid.total_cost(np.array(GRID_PRICES_RENDER),np.array(ENERGY_BOUGHT_RENDER)))
-            # np.save(name + 'Energy_bought_sold' + str(self.day) + '.npy', np.array(ENERGY_BOUGHT_RENDER)-np.array(ENERGY_SOLD_RENDER))
-            # np.save(name+'TOTAL_Consumption'+str(self.day)+'.npy' , TOTAL_CONSUMPTION_RENDER)
             SOCS_RENDER.clear()
             LOADS_RENDER.clear()
             PRICE_RENDER.clear()
@@ -690,7 +680,7 @@ if __name__ == '__main__':
         # Pick an action from the action space (here we pick an index between 0 and 80)
         # action = env.action_space.sample()
         # action =[np.argmax(action[0:4]),np.argmax(action[4:9]),np.argmax(action[9:11]),np.argmax(action[11:])]
-        action=[1,2,0,0]
+        action=[1,2,0,1]
         # Using the index we get the actual action that we will send to the environment
         # print(ACTIONS[action])
         print(action)
