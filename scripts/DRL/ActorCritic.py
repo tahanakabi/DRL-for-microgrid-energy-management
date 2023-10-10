@@ -1,30 +1,21 @@
-# -----------------------------------
-#
-# A3C implementation with GPU optimizer threads.
-#
-# Made as part of blog series Let's make an A3C, available at
-# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
-#
-# author: Jaromir Janisch, 2017
+# Actor-Critic algorithm to solve the problem of microgrid's energy management
 
-# Adapted for microgrid energy management
-# author: Taha Nakabi
+# Author: Taha Nakabi
 
-import numpy as np
 import tensorflow as tf
 
-import gym, time, random, threading
+import time
 
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 import pickle
 
 # -- constants
 RUN_TIME = 1000
-THREADS = 16
+THREADS = 1
 OPTIMIZERS = 1
 THREAD_DELAY = 0.00001
 
@@ -42,7 +33,6 @@ LEARNING_RATE = 1e-3
 
 LOSS_V = 0.4  # v loss coefficient
 LOSS_ENTROPY = 1.0  # entropy coefficient
-
 DAY0=50
 DAYN=60
 REWARDS = {}
@@ -70,7 +60,6 @@ class Brain:
         # self.default_graph.finalize()  # avoid modifications
 
     def _build_model(self):
-
         l_input = Input(batch_shape=(None, NUM_STATE))
         l_input1 = Lambda(lambda x: x[:, 0:NUM_STATE - 7])(l_input)
         l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
@@ -229,30 +218,36 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY,**kwargs):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
         threading.Thread.__init__(self)
 
         self.render = render
-        self.env = MicroGridEnv(**kwargs)
+        self.env = MicroGridEnv()
         self.agent = Agent(eps_start, eps_end, eps_decay)
         self.episode_counter=0
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset_all(day=day)
+        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
         R = 0
+
         while True:
             time.sleep(THREAD_DELAY)  # yield
+            # if self.render:
+            #     self.env.render()
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
-            if self.render:
-                self.env.render()
+
+            # if done:  # terminal state
+            #     s_ = None
             aa=np.zeros(shape=(NUM_ACTIONS,))
             aa[a]=1
             self.agent.train(s, aa, r, s_)
+
             s = s_
             R += r
             if done:
+                # if self.render: self.env.render()
                 break
         print(R)
 
@@ -265,8 +260,10 @@ class Environment(threading.Thread):
     def run(self):
         while not self.stop_signal:
             self.runEpisode()
+            self.episode_counter += 1
 
     def stop(self):
+        print(self.episode_counter)
         self.stop_signal = True
 
 
@@ -297,45 +294,46 @@ NUM_ACTIONS_EXCESS = 2
 NONE_STATE = np.zeros(NUM_STATE)
 EPISODE_COUNTER = 0
 brain = Brain()  # brain is global in A3C
-# Uncomment this for training
+
 # envs = [Environment() for i in range(THREADS)]
 # opts = [Optimizer() for i in range(OPTIMIZERS)]
 # import time
 # t0=time.time()
 # for o in opts:
 #     o.start()
+#
 # for e in envs:
 #     e.start()
+#
 # time.sleep(RUN_TIME)
+#
 # for e in envs:
 #     e.stop()
 # for e in envs:
 #     e.join()
+#
 # for o in opts:
 #     o.stop()
 # for o in opts:
 #     o.join()
+# # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
 # print("Training finished")
 # print('training_time:', time.time()-t0)
-# with open("REWARDS_A3C_basic.pkl",'wb') as f:
+# brain.model.save("AC.h5")
+# with open("REWARDS_AC.pkl",'wb') as f:
 #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-# brain.model.save("A3C.h5")
+#
 # for rew in REWARDS.values():
 #     pyplot.plot(list(rew))
 # pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
 # pyplot.show()
 
-
-brain.model.load_weights("A3C.h5")
+brain.model.load_weights("AC.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-with open("../rewards/REWARDS_A3C_basic.pkl", 'wb') as f:
+with open("../../rewards/REWARDS_AC.pkl", 'wb') as f:
     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-
-
-# with open("REWARDS_A3C_basic.pkl",'wb') as f:
-#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 # pyplot.plot(REWARDS)
 # pyplot.show()
 

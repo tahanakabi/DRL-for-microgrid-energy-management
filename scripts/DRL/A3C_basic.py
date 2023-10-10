@@ -1,20 +1,29 @@
-# Author: Taha Nakabi
+# -----------------------------------
+#
+# A3C implementation with GPU optimizer threads.
+#
+# Made as part of blog series Let's make an A3C, available at
+# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
+#
+# author: Jaromir Janisch, 2017
 
-import numpy as np
+# Adapted for microgrid energy management
+# author: Taha Nakabi
+
 import tensorflow as tf
 
-import gym, time, random, threading
+import time
 
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 import pickle
 
 # -- constants
 RUN_TIME = 1000
-THREADS = 1
+THREADS = 16
 OPTIMIZERS = 1
 THREAD_DELAY = 0.00001
 
@@ -30,15 +39,14 @@ EPS_DECAY = 5e-5
 MIN_BATCH = 200
 LEARNING_RATE = 1e-3
 
-LOSS_V = 0.0  # v loss coefficient
-LOSS_ENTROPY = 0.0  # entropy coefficient
+LOSS_V = 0.4  # v loss coefficient
+LOSS_ENTROPY = 1.0  # entropy coefficient
+
 DAY0=50
 DAYN=60
 REWARDS = {}
 for i in range(DAY0,DAYN):
     REWARDS[i]=[]
-
-max_reward = -3.0
 TRAINING_ITERATIONS = 1
 
 # ---------
@@ -56,7 +64,6 @@ class Brain:
 
         self.session.run(tf.global_variables_initializer())
         self.default_graph = tf.get_default_graph()
-        self.max_reward = max_reward
         self.rewards = REWARDS.copy()
 
         # self.default_graph.finalize()  # avoid modifications
@@ -85,8 +92,10 @@ class Brain:
         r_t = tf.placeholder(tf.float32, shape=(None, 1))  # not immediate, but discounted n step reward
         p, v = model(s_t)
         log_prob = tf.log(tf.reduce_sum(p * a_t, axis=1, keepdims=True) + 1e-10)
-        loss_policy =  -log_prob * tf.stop_gradient(r_t)   # maximize policy
-        loss_total = tf.reduce_mean(loss_policy)# + loss_value + entropy)
+        advantage = r_t - v
+        loss_policy = -log_prob * tf.stop_gradient(advantage)  # maximize policy
+        loss_value = LOSS_V * tf.square(advantage)  # minimize value error
+        loss_total = tf.reduce_mean(loss_policy + loss_value )
         optimizer = tf.train.RMSPropOptimizer(LEARNING_RATE)
         minimize = optimizer.minimize(loss_total)
         return s_t, a_t, r_t, minimize, loss_total
@@ -219,37 +228,30 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY,**kwargs):
         threading.Thread.__init__(self)
 
         self.render = render
-        self.env = MicroGridEnv()
+        self.env = MicroGridEnv(**kwargs)
         self.agent = Agent(eps_start, eps_end, eps_decay)
         self.episode_counter=0
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
+        s = self.env.reset_all(day=day)
         R = 0
-
         while True:
             time.sleep(THREAD_DELAY)  # yield
-            # if self.render:
-                # brain.model.load_weights("A3C-v=006_avg5.h5")
-                # self.env.render()
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
-
-            # if done:  # terminal state
-            #     s_ = None
+            if self.render:
+                self.env.render()
             aa=np.zeros(shape=(NUM_ACTIONS,))
             aa[a]=1
             self.agent.train(s, aa, r, s_)
-
             s = s_
             R += r
             if done:
-                # if self.render: self.env.render()
                 break
         print(R)
 
@@ -262,10 +264,8 @@ class Environment(threading.Thread):
     def run(self):
         while not self.stop_signal:
             self.runEpisode()
-            self.episode_counter += 1
 
     def stop(self):
-        print(self.episode_counter)
         self.stop_signal = True
 
 
@@ -296,41 +296,45 @@ NUM_ACTIONS_EXCESS = 2
 NONE_STATE = np.zeros(NUM_STATE)
 EPISODE_COUNTER = 0
 brain = Brain()  # brain is global in A3C
-
+# Uncomment this for training
 # envs = [Environment() for i in range(THREADS)]
 # opts = [Optimizer() for i in range(OPTIMIZERS)]
 # import time
 # t0=time.time()
 # for o in opts:
 #     o.start()
-#
 # for e in envs:
 #     e.start()
-#
 # time.sleep(RUN_TIME)
-#
 # for e in envs:
 #     e.stop()
 # for e in envs:
 #     e.join()
-#
 # for o in opts:
 #     o.stop()
 # for o in opts:
 #     o.join()
-# # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
 # print("Training finished")
 # print('training_time:', time.time()-t0)
-# with open("REWARDS_REINFORCE.pkl",'wb') as f:
+# with open("REWARDS_A3C_basic.pkl",'wb') as f:
 #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# brain.model.save("A3C.h5")
+# for rew in REWARDS.values():
+#     pyplot.plot(list(rew))
+# pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
+# pyplot.show()
 
-brain.model.load_weights("REINFORCE" + ".h5")
+
+brain.model.load_weights("A3C.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-with open("../rewards/REWARDS_REINFORCE.pkl", 'wb') as f:
+with open("../../rewards/REWARDS_A3C_basic.pkl", 'wb') as f:
     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 
+
+# with open("REWARDS_A3C_basic.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 # pyplot.plot(REWARDS)
 # pyplot.show()
 

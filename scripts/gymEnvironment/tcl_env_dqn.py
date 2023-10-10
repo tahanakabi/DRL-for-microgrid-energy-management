@@ -140,8 +140,8 @@ class Battery:
 
 class Grid:
     def __init__(self):
-        down_reg_df=pd.read_csv("../data/down_regulation.csv")
-        up_reg_df = pd.read_csv("../data/up_regulation.csv")
+        down_reg_df=pd.read_csv("../../data/down_regulation.csv")
+        up_reg_df = pd.read_csv("../../data/up_regulation.csv")
         down_reg = np.array(down_reg_df.iloc[:,-1])/10
         up_reg = np.array(up_reg_df.iloc[:, -1])/10
         self.buy_prices = down_reg
@@ -166,7 +166,7 @@ class Grid:
 
 class Generation:
     def __init__(self, max_capacity):
-        power_df = pd.read_csv("../data/wind_generation.csv")
+        power_df = pd.read_csv("../../data/wind_generation.csv")
         self.power = np.array(power_df.iloc[:,-1])
         self.max_capacity = np.max(self.power[:30])
 

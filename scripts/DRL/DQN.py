@@ -1,4 +1,4 @@
-# DQN with target net a modified version of DQN algorithm
+# DQN a modified version of DQN algorithm
 # To solve the problem of migrogrid's energy management
 # -----------------------------------
 
@@ -9,16 +9,12 @@
 
 # Author: Taha Nakabi
 
-import random, numpy, math, gym, sys
+import numpy
+
+# -------------------- BRAIN ---------------------------
+from keras.optimizers import *
 from keras.models import *
 from keras.layers import *
-from keras import backend as K
-
-from tcl_env_dqn_1 import *
-import tensorflow as tf
-
-# ----------
-
 
 DAY0 = 50
 DAYN = 60
@@ -26,20 +22,11 @@ REWARDS = {}
 for i in range(DAY0,DAYN,1):
     REWARDS[i]=[]
 
-# -------------------- BRAIN ---------------------------
-from keras.models import Sequential
-from keras.layers import *
-from keras.optimizers import *
-
-
-
-
 class Brain:
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
         self.actionCnt = actionCnt
         self.model = self._createModel()
-        self.model_ = self._createModel()
 
     def _createModel(self):
         l_input = Input(batch_shape=(None, self.stateCnt))
@@ -59,23 +46,15 @@ class Brain:
         model.compile(loss='mse', optimizer=opt)
         return model
 
-    def train(self, x, y, epochs=1, verbose=0):
-        self.model.fit(x, y, batch_size=100, epochs=epochs, verbose=verbose)
 
-    def predict(self, s, target=False):
-        if target:
-            return self.model_.predict(s)
-        else:
-            return self.model.predict(s)
+    def train(self, x, y, epoch=1, verbose=0):
+        self.model.fit(x, y, batch_size=100, epochs=epoch, verbose=verbose)
 
-    def predictOne(self, s, target=False):
-        return self.predict(s.reshape(1, self.stateCnt), target=target).flatten()
+    def predict(self, s):
+        return self.model.predict(s)
 
-    def updateTargetModel(self):
-        self.model_.set_weights(self.model.get_weights())
-
-    def downModel(self):
-        self.model.set_weights(self.model_.get_weights())
+    def predictOne(self, s):
+        return self.predict(s.reshape(1, self.stateCnt)).flatten()
 
 
 # -------------------- MEMORY --------------------------
@@ -95,9 +74,6 @@ class Memory:  # stored as ( s, a, r, s_ )
         n = min(n, len(self.samples))
         return random.sample(self.samples, n)
 
-    def isFull(self):
-        return len(self.samples) >= self.capacity
-
 
 # -------------------- AGENT ---------------------------
 MEMORY_CAPACITY = 500
@@ -105,17 +81,15 @@ BATCH_SIZE = 200
 
 GAMMA = 1.0
 
-MAX_EPSILON = 0.5
-MIN_EPSILON = 0.004
-LAMBDA = 1e-5 # speed of decay
 
-UPDATE_TARGET_FREQUENCY = 200
-
+# MAX_EPSILON = 0.4
+# MIN_EPSILON = 0.004
+# LAMBDA =5e-5  # speed of decay
 
 
 class Agent:
     steps = 0
-    epsilon = MAX_EPSILON
+    # epsilon = MAX_EPSILON
 
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
@@ -127,36 +101,38 @@ class Agent:
     def act(self, s, deter):
         if deter == True:
             return numpy.argmax(self.brain.predictOne(s))
-        if random.random() < self.epsilon:
-            return random.randint(0, self.actionCnt - 1)
-        return numpy.argmax(self.brain.predictOne(s))
+        # if random.random() < self.epsilon:
+        return random.randint(0, self.actionCnt - 1)
+        # return numpy.argmax(self.brain.predictOne(s))
 
     def observe(self, sample):  # in (s, a, r, s_) format
         self.memory.add(sample)
-        if self.steps % UPDATE_TARGET_FREQUENCY == 0:
-            self.brain.updateTargetModel()
-            self.brain.model.save_weights("DQNTNet.h5")
-            print("Target model updated")
-        # slowly decrease Epsilon based on our eperience
-        self.steps += 1
-        self.epsilon = self.epsilon = max(MAX_EPSILON -LAMBDA * self.steps, MIN_EPSILON)
+
+        # # slowly decrease Epsilon based on our eperience
+        # self.steps += 1
+        # self.epsilon = max(MAX_EPSILON -LAMBDA * self.steps, MIN_EPSILON)
+        # print(self.epsilon)
 
     def replay(self):
         batch = self.memory.sample(BATCH_SIZE)
         batchLen = len(batch)
+
         no_state = numpy.zeros(self.stateCnt)
+
         states = numpy.array([o[0] for o in batch])
         states_ = numpy.array([(no_state if o[3] is None else o[3]) for o in batch])
+
         p = self.brain.predict(states)
-        p_ = self.brain.predict(states_, target=True)
+        p_ = self.brain.predict(states_)
+
         x = numpy.zeros((batchLen, self.stateCnt))
         y = numpy.zeros((batchLen, self.actionCnt))
 
         for i in range(batchLen):
             o = batch[i]
-            s = o[0]
-            a = o[1]
-            r = o[2]
+            s = o[0];
+            a = o[1];
+            r = o[2];
             s_ = o[3]
 
             t = p[i]
@@ -164,35 +140,24 @@ class Agent:
                 t[a] = r
             else:
                 t[a] = r + GAMMA * numpy.amax(p_[i])
+
             x[i] = s
             y[i] = t
+
         self.brain.train(x, y)
-
-class RandomAgent:
-    memory = Memory(MEMORY_CAPACITY)
-
-    def __init__(self, actionCnt):
-        self.actionCnt = actionCnt
-
-    def act(self, s, deter):
-        return random.randint(0, self.actionCnt - 1)
-
-    def observe(self, sample):  # in (s, a, r, s_) format
-        self.memory.add(sample)
-
-
-    def replay(self):
-        pass
 
 
 # -------------------- ENVIRONMENT ---------------------
-class Environment:
-    def __init__(self,render= False):
-        self.env = MicroGridEnv()
-        self.render = render
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 
-    def run(self, agent,day=None):
-        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
+class Environment:
+    def __init__(self, render = False):
+        self.env = MicroGridEnv()
+        self.render=render
+
+
+    def run(self, agent, day=None):
+        s = self.env.reset(day0=DAY0, dayn=DAYN, day= day)
         R = 0
         while True:
             # if self.render: self.env.render()
@@ -207,56 +172,43 @@ class Environment:
                 agent.replay()
             s = s_
             R += r
+
             if done:
                 # if self.render: self.env.render()
                 break
         REWARDS[self.env.day].append(R)
-        print("Total reward:", R)
+        print("Day ", self.env.day)
+        print("R= ", R)
 
 
 # -------------------- MAIN ----------------------------
-# PROBLEM = 'CartPole-v0'
-
-env = Environment()
-env1= Environment(render=True)
-#
-stateCnt = env.env.observation_space.shape[0]
-actionCnt = env.env.action_space.n
-#
-agent = Agent(stateCnt, actionCnt)
-randomAgent = RandomAgent(actionCnt)
-
-# while randomAgent.memory.isFull() == False:
-#     env.run(randomAgent)
-#
-# agent.memory.samples = randomAgent.memory.samples
-# randomAgent = None
-from time import time
-import pickle
+if __name__=="__main__":
+    # PROBLEM = TCLEnv
+    env = Environment()
 
 
-# t0= time()
-# for _ in range(1000):
-#     env.run(agent)
-# print("Training finished")
-# print("Training time: ",time()-t0)
-#
-# agent.brain.model.save_weights("DQNTNET.h5")
-# with open("REWARDS_DQNTNET.pkl", 'wb') as f:
-#     pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
+    stateCnt = env.env.observation_space.shape[0]
+    actionCnt = env.env.action_space.n
+    agent = Agent(stateCnt, actionCnt)
 
-# for rew in REWARDS.values():
-#     # print(np.average(list(rew)))
-#     pyplot.plot(list(rew))
-
-# pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
-# pyplot.show()
-
-agent.brain.model.load_weights("DQNTNET.h5")
-env_test = Environment(render=True)
-for day in range(DAY0,DAYN):
-    env_test.run(agent,day=day)
-
-print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-with open("../rewards/REWARDS_DQNTNET.pkl", 'wb') as f:
-    pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)
+    import pickle
+    import time
+    t0=time.time()
+    # for _ in range(1000):
+    #     env.run(agent)
+    # print('training_time:', time.time()-t0)
+    # agent.brain.model.save_weights("DQN.h5")
+    # with open("REWARDS_DQN.pkl",'wb') as f:
+    #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+    # for rew in REWARDS.values():
+    #     print(np.average(list(rew)))
+    #     pyplot.plot(list(rew))
+    # pyplot.legend(["Day {}".format(i) for i in range(DAY0,DAY0)], loc = 'upper right')
+    # pyplot.show()
+    agent.brain.model.load_weights("DQN.h5")
+    env_test=Environment(render=True)
+    for day in range(DAY0,DAYN):
+        env_test.run(agent,day=day)
+    print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
+    with open("../../rewards/REWARDS_DQN.pkl", 'wb') as f:
+        pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)

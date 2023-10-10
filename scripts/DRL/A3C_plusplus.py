@@ -15,21 +15,19 @@
 # Args: 'train' for training the model anything else will skip the training and try to use already saved models
 
 import tensorflow as tf
-import numpy as np
-import gym, time, random, threading
-from keras.callbacks import TensorBoard
+import time
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 print("after import")
 import os
 
 
 
 # This is where the models are saved and retrieved from
-MODELS_DIRECTORY = 'success01'
+MODELS_DIRECTORY = '../../models/A3C++models'
 # For tensor board
 NAME= "A3C++logs/A3C++{}".format(int(time.time()))
 # -- constants

@@ -22,11 +22,11 @@ import math
 DEFAULT_DAY0=0
 DEFAULT_DAYN=1
 # Power generated in the microgrid
-DEFAULT_POWER_GENERATED = np.genfromtxt("wind_generation_fortum.csv", delimiter=',', skip_header=0, usecols=[-1]) / 100
+DEFAULT_POWER_GENERATED = np.genfromtxt("../../data/wind_generation_fortum.csv", delimiter=',', skip_header=0, usecols=[-1]) / 100
 DEFAULT_WIND_POWER_COST = 3.2
 # Balancing market prices
-DEFAULT_DOWN_REG = np.genfromtxt("down_regulation.csv", delimiter=',', skip_header=1, usecols=[-1]) / 10
-DEFAULT_UP_REG = np.genfromtxt("up_regulation.csv", delimiter=',', skip_header=1, usecols=[-1]) / 10
+DEFAULT_DOWN_REG = np.genfromtxt("../../data/down_regulation.csv", delimiter=',', skip_header=1, usecols=[-1]) / 10
+DEFAULT_UP_REG = np.genfromtxt("../../data/up_regulation.csv", delimiter=',', skip_header=1, usecols=[-1]) / 10
 DEFAULT_TRANSFER_PRICE_IMPORT = 0.97
 DEFAULT_TRANSFER_PRICE_EXPORT = 0.09
 # Length of one episode
@@ -34,7 +34,7 @@ DEFAULT_ITERATIONS = 24
 # TCLs
 DEFAULT_NUM_TCLS = 100
 DEFAULT_AVGTCLPOWER = 1.5
-DEFAULT_TEMPERATURS = np.genfromtxt("temperatures.csv",usecols=[5],skip_header=1,delimiter=',')
+DEFAULT_TEMPERATURS = np.genfromtxt("../../data/temperatures.csv",usecols=[5],skip_header=1,delimiter=',')
 DEFAULT_TCL_SALE_PRICE = 3.2
 DEFAULT_TCL_TMIN = 19
 DEFAULT_TCL_TMAX = 24

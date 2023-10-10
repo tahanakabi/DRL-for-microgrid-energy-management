@@ -1,6 +1,6 @@
 # Author: Taha Nakabi
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 from matplotlib import pyplot
 DAY0=50
 DAYN=60
@@ -32,5 +32,5 @@ for day in range(DAY0,DAYN):
     R=daily_margin(day)
     REWARDS.append(R)
 import pickle
-with open("../rewards/REWARDS_retailer.pkl", 'wb') as f:
+with open("../../rewards/REWARDS_retailer.pkl", 'wb') as f:
     pickle.dump(REWARDS, f, pickle.HIGHEST_PROTOCOL)

@@ -9,15 +9,14 @@
 #
 # author: Jaromir Janisch, 2016
 
-import random, numpy, math, gym, sys, threading
+import numpy
 import threading
 import time
 
 from keras.models import *
-from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn import *
+from scripts.gymEnvironment.tcl_env_dqn import *
 import tensorflow as tf
 
 # ----------
@@ -47,7 +46,6 @@ def huber_loss(y_true, y_pred):
 
 
 # -------------------- BRAIN ---------------------------
-from keras.models import Sequential
 from keras.layers import *
 from keras.optimizers import *
 

@@ -1,16 +1,14 @@
 # Author: Taha Nakabi
 
-import numpy as np
 import tensorflow as tf
 # import tensorflow_probability as tfp
-from matplotlib import pyplot
-import gym, time, random, threading
+import time
 
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 
 # -- constants
 RUN_TIME = 700
@@ -369,7 +367,7 @@ for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print("average= ",np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
 import pickle
-with open("../rewards/REWARDS_PPO++.pkl", 'wb') as f:
+with open("../../rewards/REWARDS_PPO++.pkl", 'wb') as f:
     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
 
 

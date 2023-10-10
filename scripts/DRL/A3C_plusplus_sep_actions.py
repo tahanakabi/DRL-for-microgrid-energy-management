@@ -15,17 +15,15 @@
 import os
 import sys
 
-import numpy as np
 import tensorflow as tf
 
-from matplotlib import pyplot
-import gym, time, random, threading
+import time
 
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 
 
 

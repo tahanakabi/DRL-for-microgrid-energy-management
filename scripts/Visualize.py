@@ -1,11 +1,6 @@
 # Author: Taha Nakabi
 
-from matplotlib import pyplot as plt
 import pickle
-import numpy as np
-from scipy.stats import stats
-from tcl_env_dqn_1 import DEFAULT_POWER_GENERATED
-from Retailer import DEFAULT_UP_REG
 import pygal as pg
 with open("../rewards/REWARDS_DQN.pkl", 'rb') as f:
     DQN=pickle.load(f,errors='ignore')

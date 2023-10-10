@@ -1,24 +1,25 @@
-# DQN a modified version of DQN algorithm
-# To solve the problem of migrogrid's energy management
-# -----------------------------------
+# -------------------
+#
+# SARSA algorithm for Microgrid energy management
+#
 
-# The DQN implementation is available at:
-# https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/
-# by: Jaromir Janisch, 2017
-# Adapted to solve the problem of microgrid energy management
+# Author:
+#
+# Taha Nakabi
 
-# Author: Taha Nakabi
+# --- enable this to run on GPU
+import os
+os.environ['THEANO_FLAGS'] = "device=gpu,floatX=float32"
 
-import random, numpy, math, gym
-
+import numpy
+from keras.callbacks import TensorBoard
 # -------------------- BRAIN ---------------------------
-from keras.models import Sequential
-from keras.layers import *
 from keras.optimizers import *
 from keras.models import *
 from keras.layers import *
-from keras import backend as K
-
+import time
+NAME = "SARSA-{}".format(int(time.time()))
+# NAME = "SARSA"
 DAY0 = 50
 DAYN = 60
 REWARDS = {}
@@ -29,7 +30,10 @@ class Brain:
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
         self.actionCnt = actionCnt
+
         self.model = self._createModel()
+        self.tensorboard = TensorBoard(log_dir="logs/{}".format(NAME))
+        # self.model.load_weights("cartpole-basic.h5")
 
     def _createModel(self):
         l_input = Input(batch_shape=(None, self.stateCnt))
@@ -46,12 +50,13 @@ class Brain:
         model = Model(inputs=l_input, outputs=out_value)
         model._make_predict_function()
         opt = RMSprop(lr=0.00025)
+
         model.compile(loss='mse', optimizer=opt)
         return model
 
 
     def train(self, x, y, epoch=1, verbose=0):
-        self.model.fit(x, y, batch_size=100, epochs=epoch, verbose=verbose)
+        self.model.fit(x, y, batch_size=100, epochs=epoch, verbose=verbose, callbacks=[self.tensorboard])
 
     def predict(self, s):
         return self.model.predict(s)
@@ -69,9 +74,12 @@ class Memory:  # stored as ( s, a, r, s_ )
 
     def add(self, sample):
         self.samples.append(sample)
-
         if len(self.samples) > self.capacity:
             self.samples.pop(0)
+
+    def extra(self, next_a):
+        if len(self.samples) > 1:
+            self.samples[-2][-1] = next_a
 
     def sample(self, n):
         n = min(n, len(self.samples))
@@ -84,15 +92,14 @@ BATCH_SIZE = 200
 
 GAMMA = 1.0
 
-
-# MAX_EPSILON = 0.4
-# MIN_EPSILON = 0.004
-# LAMBDA =5e-5  # speed of decay
+MAX_EPSILON = 0.5
+MIN_EPSILON = 0.004
+LAMBDA = 5e-5  # speed of decay
 
 
 class Agent:
     steps = 0
-    # epsilon = MAX_EPSILON
+    epsilon = MAX_EPSILON
 
     def __init__(self, stateCnt, actionCnt):
         self.stateCnt = stateCnt
@@ -102,21 +109,23 @@ class Agent:
         self.memory = Memory(MEMORY_CAPACITY)
 
     def act(self, s, deter):
-        if deter == True:
+        if deter==True:
             return numpy.argmax(self.brain.predictOne(s))
-        # if random.random() < self.epsilon:
-        return random.randint(0, self.actionCnt - 1)
-        # return numpy.argmax(self.brain.predictOne(s))
+        if random.random() < self.epsilon:
+            return random.randint(0, self.actionCnt - 1)
+
+        return numpy.argmax(self.brain.predictOne(s))
 
     def observe(self, sample):  # in (s, a, r, s_) format
         self.memory.add(sample)
-
-        # # slowly decrease Epsilon based on our eperience
-        # self.steps += 1
-        # self.epsilon = max(MAX_EPSILON -LAMBDA * self.steps, MIN_EPSILON)
-        # print(self.epsilon)
+        self.memory.extra(sample[1])
+        # slowly decrease Epsilon based on our eperience
+        self.steps += 1
+        self.epsilon = max(MAX_EPSILON -LAMBDA * self.steps, MIN_EPSILON)
 
     def replay(self):
+        if len(self.memory.samples)<2:
+            return
         batch = self.memory.sample(BATCH_SIZE)
         batchLen = len(batch)
 
@@ -133,16 +142,17 @@ class Agent:
 
         for i in range(batchLen):
             o = batch[i]
-            s = o[0];
-            a = o[1];
-            r = o[2];
+            s = o[0]
+            a = o[1]
+            r = o[2]
             s_ = o[3]
+            a_ = o[4]
 
             t = p[i]
             if s_ is None:
                 t[a] = r
             else:
-                t[a] = r + GAMMA * numpy.amax(p_[i])
+                t[a] = r + GAMMA * p_[i][a_]
 
             x[i] = s
             y[i] = t
@@ -151,67 +161,63 @@ class Agent:
 
 
 # -------------------- ENVIRONMENT ---------------------
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 
 class Environment:
-    def __init__(self, render = False):
-        self.env = MicroGridEnv()
+    def __init__(self, render = False, **kwargs):
+        self.env = MicroGridEnv(**kwargs)
         self.render=render
 
 
     def run(self, agent, day=None):
-        s = self.env.reset(day0=DAY0, dayn=DAYN, day= day)
+        s = self.env.reset(day=day)
         R = 0
         while True:
-            # if self.render: self.env.render()
-            a = agent.act(s,deter=self.render)
+
+            a = agent.act(s, deter=self.render)
 
             s_, r, done, info = self.env.step(a)
+            if self.render: self.env.render('SARSA')
 
             if done:  # terminal state
                 s_ = None
-            agent.observe((s, a, r, s_))
-            if not self.render:
-                agent.replay()
+
+            agent.observe([s, a, r, s_,None])
+
+
             s = s_
             R += r
 
             if done:
-                # if self.render: self.env.render()
+
+                agent.replay()
                 break
+
         REWARDS[self.env.day].append(R)
-        print("Day ", self.env.day)
-        print("R= ", R)
+        print("Total reward:", R)
 
 
 # -------------------- MAIN ----------------------------
-if __name__=="__main__":
-    # PROBLEM = TCLEnv
-    env = Environment()
+# PROBLEM = TCLEnv
+env = Environment()
 
+stateCnt = env.env.observation_space.shape[0]
+actionCnt = env.env.action_space.n
 
-    stateCnt = env.env.observation_space.shape[0]
-    actionCnt = env.env.action_space.n
-    agent = Agent(stateCnt, actionCnt)
+agent = Agent(stateCnt, actionCnt)
 
-    import pickle
-    import time
-    t0=time.time()
-    # for _ in range(1000):
-    #     env.run(agent)
-    # print('training_time:', time.time()-t0)
-    # agent.brain.model.save_weights("DQN.h5")
-    # with open("REWARDS_DQN.pkl",'wb') as f:
-    #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-    # for rew in REWARDS.values():
-    #     print(np.average(list(rew)))
-    #     pyplot.plot(list(rew))
-    # pyplot.legend(["Day {}".format(i) for i in range(DAY0,DAY0)], loc = 'upper right')
-    # pyplot.show()
-    agent.brain.model.load_weights("DQN.h5")
-    env_test=Environment(render=True)
-    for day in range(DAY0,DAYN):
-        env_test.run(agent,day=day)
-    print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-    with open("../rewards/REWARDS_DQN.pkl", 'wb') as f:
-        pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+import time
+t0=time.time()
+for _ in range(1000):
+    env.run(agent)
+print('training_time:', time.time()-t0)
+# agent.brain.model.save_weights("SARSA.h5")
+# with open("REWARDS_SARSA.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
+# agent.brain.model.load_weights("SARSA.h5")
+# env_test = Environment(render=True)
+# for day in range(DAY0,DAYN):
+#     env_test.run(agent, day=day)
+# print(np.average([list(REWARDS[i])[-1] for i in range(DAY0, DAYN)]))
+# with open("REWARDS_SARSA.pkl",'wb') as f:
+#     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)

@@ -1,9 +1,8 @@
 # Author: Taha Nakabi
 
 
-from DQN import  Environment
+from scripts.DRL.DQN import  Environment
 PRICES_ACTIONS=[0,0,0,0,1,2,3,4,4,3,2,1,2,1,2,0,0,0,0,0,0,0,0,0]
-import numpy as np
 
 REWARDS = {}
 for i in range(11):

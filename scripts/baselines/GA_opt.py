@@ -1,9 +1,7 @@
 # Author: Taha Nakabi
 
 import concurrent.futures
-import random
-import numpy as np
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 POP_SHAPE=[100,24,4]
 P_C = 0.8 #Probability of crossover
 P_M = 0.5 #Probability of mutation

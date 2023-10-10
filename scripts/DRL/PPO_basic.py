@@ -1,23 +1,20 @@
-# Actor-Critic algorithm to solve the problem of microgrid's energy management
-
 # Author: Taha Nakabi
 
-import numpy as np
 import tensorflow as tf
 
-import gym, time, random, threading
+import time
 
 from keras.models import *
 from keras.layers import *
 from keras import backend as K
 
-from tcl_env_dqn_1 import *
+from scripts.gymEnvironment.tcl_env_dqn_1 import *
 import pickle
 
 # -- constants
-RUN_TIME = 1000
-THREADS = 1
-OPTIMIZERS = 1
+RUN_TIME = 700
+THREADS = 16
+OPTIMIZERS = 4
 THREAD_DELAY = 0.00001
 
 GAMMA = 1.0
@@ -27,19 +24,22 @@ GAMMA_N = GAMMA ** N_STEP_RETURN
 
 EPS_START = 0.5
 EPS_STOP = .004
-EPS_DECAY = 5e-5
-
+EPS_DECAY = 5e-6
+PPO_EPS = 0.2
 MIN_BATCH = 200
 LEARNING_RATE = 1e-3
 
-LOSS_V = 0.4  # v loss coefficient
-LOSS_ENTROPY = 1.0  # entropy coefficient
-DAY0=50
-DAYN=60
+LOSS_V = 0.2  # v loss coefficient
+LOSS_ENTROPY = 0.1  # entropy coefficient
+
+DAY0 = 50
+DAYN = 60
+
 REWARDS = {}
 for i in range(DAY0,DAYN):
     REWARDS[i]=[]
-TRAINING_ITERATIONS = 1
+
+TRAINING_ITERATIONS = 3
 
 # ---------
 class Brain:
@@ -65,9 +65,10 @@ class Brain:
         l_input1 = Lambda(lambda x: x[:, 0:NUM_STATE - 7])(l_input)
         l_input2 = Lambda(lambda x: x[:, -7:])(l_input)
         l_input1 = Reshape((DEFAULT_NUM_TCLS, 1))(l_input1)
-        l_Pool = AveragePooling1D(pool_size=NUM_STATE - 7)(l_input1)
+        l_Pool = AveragePooling1D(pool_size=100)(l_input1)
         l_Pool = Reshape([1])(l_Pool)
         l_dense = Concatenate()([l_Pool, l_input2])
+        # l_dense = Dropout(0.1)(l_dense)
         l_dense = Dense(100, activation='relu')(l_dense)
         l_dense = Dropout(0.3)(l_dense)
         out = Dense(NUM_ACTIONS, activation='softmax')(l_dense)
@@ -81,15 +82,21 @@ class Brain:
         s_t = tf.placeholder(tf.float32, shape=(None, NUM_STATE))
         a_t = tf.placeholder(tf.float32, shape=(None, NUM_ACTIONS))
         r_t = tf.placeholder(tf.float32, shape=(None, 1))  # not immediate, but discounted n step reward
+        old_log_p_t = tf.placeholder(tf.float32, shape=(None, 1))
         p, v = model(s_t)
         log_prob = tf.log(tf.reduce_sum(p * a_t, axis=1, keepdims=True) + 1e-10)
+        ratio = tf.exp(log_prob - old_log_p_t)
         advantage = r_t - v
-        loss_policy = -log_prob * tf.stop_gradient(advantage)  # maximize policy
+        surr1 = ratio * tf.stop_gradient(advantage)
+        surr2 = tf.clip_by_value(ratio, 1.0 - PPO_EPS, 1.0 + PPO_EPS) * tf.stop_gradient(advantage)
+        surr = tf.minimum(surr1, surr2)
+        loss_policy = -surr  # maximize policy
+        entropy = LOSS_ENTROPY * (tf.reduce_sum(p * tf.log(p + 1e-100), axis=1, keepdims=True))
         loss_value = LOSS_V * tf.square(advantage)  # minimize value error
-        loss_total = tf.reduce_mean(loss_policy + loss_value )
+        loss_total = tf.reduce_mean(loss_policy + loss_value + entropy)
         optimizer = tf.train.RMSPropOptimizer(LEARNING_RATE)
         minimize = optimizer.minimize(loss_total)
-        return s_t, a_t, r_t, minimize, loss_total
+        return s_t, a_t, r_t, minimize, loss_total, old_log_p_t, log_prob
 
     def optimize(self):
         if len(self.train_queue[0]) < MIN_BATCH:
@@ -114,9 +121,11 @@ class Brain:
         v = self.predict_v(s_)
         r = r + GAMMA_N * v * s_mask  # set v to 0 where s_ is terminal state
 
-        s_t, a_t, r_t, minimize, loss = self.graph
+        s_t, a_t, r_t, minimize, loss, old_log_p_t, log_prob = self.graph
         print("Training")
-        self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r})
+        old_log_p = self.session.run(log_prob, feed_dict={s_t: s, a_t: a})
+        for _ in range(TRAINING_ITERATIONS):
+            self.session.run([minimize,loss], feed_dict={s_t: s, a_t: a, r_t: r,old_log_p_t:old_log_p})
         print("Done...")
 
 
@@ -219,23 +228,24 @@ class Agent:
 class Environment(threading.Thread):
     stop_signal = False
 
-    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_decay=EPS_DECAY):
+    def __init__(self, render=False, eps_start=EPS_START, eps_end=EPS_STOP, eps_steps=EPS_DECAY):
         threading.Thread.__init__(self)
 
         self.render = render
         self.env = MicroGridEnv()
-        self.agent = Agent(eps_start, eps_end, eps_decay)
+        self.agent = Agent(eps_start, eps_end, eps_steps)
         self.episode_counter=0
 
 
     def runEpisode(self,day=None):
-        s = self.env.reset(day0=DAY0,dayn=DAYN,day=day)
+        s = self.env.reset(day0=DAY0,dayn=DAYN, day=day)
         R = 0
 
         while True:
             time.sleep(THREAD_DELAY)  # yield
             # if self.render:
-            #     self.env.render()
+                # brain.model.load_weights("A3C-v=006_avg5.h5")
+                # self.env.render(name="PPO")
             a, p = self.agent.act(s)
             s_, r, done, _ = self.env.step(a)
 
@@ -248,10 +258,9 @@ class Environment(threading.Thread):
             s = s_
             R += r
             if done:
-                # if self.render: self.env.render()
+                # if self.render: self.env.render(name='PPO')
                 break
         print(R)
-
         REWARDS[self.env.day].append(R)
         brain.rewards[self.env.day].append(R)
 
@@ -320,21 +329,13 @@ brain = Brain()  # brain is global in A3C
 # # AVGRWRD=[np.average(REWARDS[i:i+10]) for i in range(0,len(REWARDS),10)]
 # print("Training finished")
 # print('training_time:', time.time()-t0)
-# brain.model.save("AC.h5")
-# with open("REWARDS_AC.pkl",'wb') as f:
+# with open("PPO_basic.pkl",'wb') as f:
 #     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-#
-# for rew in REWARDS.values():
-#     pyplot.plot(list(rew))
-# pyplot.legend(["Day {}".format(i) for i in range(11)], loc = 'upper right')
-# pyplot.show()
-
-brain.model.load_weights("AC.h5")
+brain.model.load_weights("PPO_basic.h5")
 for day in range(DAY0,DAYN):
     env_test.runEpisode(day=day)
 print(np.average([list(REWARDS[i])[-1] for i in range(DAY0,DAYN)]))
-with open("../rewards/REWARDS_AC.pkl", 'wb') as f:
+with open("../../rewards/REWARDS_PPO_basic.pkl", 'wb') as f:
     pickle.dump(REWARDS,f,pickle.HIGHEST_PROTOCOL)
-# pyplot.plot(REWARDS)
-# pyplot.show()
+
 
